@@ -26,7 +26,7 @@ import de.danoeh.antennapod.feed.FeedMedia;
  * */
 public class PodDBAdapter {
 	private static final String TAG = "PodDBAdapter";
-	private static final int DATABASE_VERSION = 8;
+	private static final int DATABASE_VERSION = 9;
 	private static final String DATABASE_NAME = "Antennapod.db";
 
 	/** Maximum number of arguments for IN-operator. */
@@ -63,6 +63,8 @@ public class PodDBAdapter {
 	public static final int KEY_SIZE_INDEX = 6;
 	public static final int KEY_MIME_TYPE_INDEX = 7;
 	public static final int KEY_PLAYBACK_COMPLETION_DATE_INDEX = 8;
+	public static final int KEY_LOCAL_MEDIA_URL_INDEX = 9;
+	public static final int KEY_STREAM_URL_INDEX = 10;
 	// --------- Download log indices
 	public static final int KEY_FEEDFILE_INDEX = 1;
 	public static final int KEY_FEEDFILETYPE_INDEX = 2;
@@ -118,6 +120,8 @@ public class PodDBAdapter {
 	public static final String KEY_DOWNLOADSTATUS_TITLE = "title";
 	public static final String KEY_CHAPTER_TYPE = "type";
 	public static final String KEY_PLAYBACK_COMPLETION_DATE = "playback_completion_date";
+	public static final String KEY_LOCAL_MEDIA_URL = "local_media_url";
+	public static final String KEY_STREAM_URL = "stream_url";
 
 	// Table names
 	public static final String TABLE_NAME_FEEDS = "Feeds";
@@ -159,7 +163,9 @@ public class PodDBAdapter {
 			+ " INTEGER," + KEY_FILE_URL + " TEXT," + KEY_DOWNLOAD_URL
 			+ " TEXT," + KEY_DOWNLOADED + " INTEGER," + KEY_POSITION
 			+ " INTEGER," + KEY_SIZE + " INTEGER," + KEY_MIME_TYPE + " TEXT,"
-			+ KEY_PLAYBACK_COMPLETION_DATE + " INTEGER)";
+			+ KEY_PLAYBACK_COMPLETION_DATE + " INTEGER,"
+			+ KEY_LOCAL_MEDIA_URL + " TEXT,"
+			+ KEY_STREAM_URL + " TEXT)";
 
 	private static final String CREATE_TABLE_DOWNLOAD_LOG = "CREATE TABLE "
 			+ TABLE_NAME_DOWNLOAD_LOG + " (" + TABLE_PRIMARY_KEY + KEY_FEEDFILE
@@ -319,6 +325,9 @@ public class PodDBAdapter {
 		} else {
 			values.put(KEY_PLAYBACK_COMPLETION_DATE, 0);
 		}
+		values.put(KEY_LOCAL_MEDIA_URL, media.getLocalMediaUrl());
+		values.put(KEY_STREAM_URL, media.getStreamUrl());
+		
 		if (media.getId() == 0) {
 			media.setId(db.insert(TABLE_NAME_FEED_MEDIA, null, values));
 		} else {
@@ -760,6 +769,12 @@ public class PodDBAdapter {
 				db.execSQL("ALTER TABLE " + TABLE_NAME_FEED_MEDIA
 						+ " ADD COLUMN " + KEY_PLAYBACK_COMPLETION_DATE
 						+ " INTEGER");
+			}
+			if (oldVersion <= 8) {
+				db.execSQL("ALTER TABLE " + TABLE_NAME_FEED_MEDIA
+						+ " ADD COLUMN " + KEY_LOCAL_MEDIA_URL + " TEXT");
+				db.execSQL("ALTER TABLE " + TABLE_NAME_FEED_MEDIA
+						+ " ADD COLUMN " + KEY_STREAM_URL + " TEXT");
 			}
 		}
 	}
