@@ -4,6 +4,7 @@ import org.xml.sax.Attributes;
 
 import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
+import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
@@ -48,11 +49,9 @@ public class NSRSS20 extends Namespace {
 
 		} else if (localName.equals(ENCLOSURE)) {
 			String type = attributes.getValue(ENC_TYPE);
+			String mimeTypeFromUrl = null;
 			String url = attributes.getValue(ENC_URL);
-			if (state.getCurrentItem().getMedia() == null
-					&& (SyndTypeUtils.enclosureTypeValid(type) || ((type = SyndTypeUtils
-							.getValidMimeTypeFromUrl(url)) != null))) {
-
+			if (state.getCurrentItem().getMedia() == null) {
 				long size = 0;
 				try {
 					size = Long.parseLong(attributes.getValue(ENC_LEN));
@@ -60,8 +59,20 @@ public class NSRSS20 extends Namespace {
 					if (AppConfig.DEBUG)
 						Log.d(TAG, "Length attribute could not be parsed.");
 				}
-				state.getCurrentItem().setMedia(
-						new EnclosedFeedMedia(state.getCurrentItem(), url, size, type));
+				if (SyndTypeUtils.enclosureTypeValid(type)
+						|| ((mimeTypeFromUrl = SyndTypeUtils.getValidMimeTypeFromUrl(url)) != null)) {
+					if (mimeTypeFromUrl != null) {
+						type = mimeTypeFromUrl;
+					}
+					state.getCurrentItem().setMedia(
+							new EnclosedFeedMedia(state.getCurrentItem(), url,
+									size, type));
+				} else if (type
+						.equals(BitTorrentFeedMedia.MIME_TYPE_BITTORRENT)) {
+					state.getCurrentItem().setMedia(
+							new BitTorrentFeedMedia(state.getCurrentItem(),
+									url, size, type));
+				}
 			}
 
 		} else if (localName.equals(IMAGE)) {
@@ -98,7 +109,8 @@ public class NSRSS20 extends Namespace {
 					state.getCurrentItem().setTitle(content);
 				} else if (second.equals(CHANNEL)) {
 					state.getFeed().setTitle(content);
-				} else if (second.equals(IMAGE) && third != null && third.equals(CHANNEL)) {
+				} else if (second.equals(IMAGE) && third != null
+						&& third.equals(CHANNEL)) {
 					state.getFeed().getImage().setTitle(content);
 				}
 			} else if (top.equals(LINK)) {
@@ -110,7 +122,8 @@ public class NSRSS20 extends Namespace {
 			} else if (top.equals(PUBDATE) && second.equals(ITEM)) {
 				state.getCurrentItem().setPubDate(
 						SyndDateUtils.parseRFC822Date(content));
-			} else if (top.equals(URL) && second.equals(IMAGE) && third != null && third.equals(CHANNEL)) {
+			} else if (top.equals(URL) && second.equals(IMAGE) && third != null
+					&& third.equals(CHANNEL)) {
 				state.getFeed().getImage().setDownload_url(content);
 			} else if (localName.equals(DESCR)) {
 				if (second.equals(CHANNEL)) {

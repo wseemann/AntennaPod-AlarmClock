@@ -1488,18 +1488,37 @@ public class FeedManager {
 						playbackCompletionDate = new Date(
 								playbackCompletionTime);
 					}
-
-					item.setMedia(new EnclosedFeedMedia(
-							mediaId,
-							item,
-							cursor.getInt(PodDBAdapter.KEY_DURATION_INDEX),
-							cursor.getInt(PodDBAdapter.KEY_POSITION_INDEX),
-							cursor.getLong(PodDBAdapter.KEY_SIZE_INDEX),
-							cursor.getString(PodDBAdapter.KEY_MIME_TYPE_INDEX),
-							cursor.getString(PodDBAdapter.KEY_FILE_URL_INDEX),
-							cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
-							cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
-							playbackCompletionDate));
+					// Use mime_type to determine the type of FeedMedia
+					String mimeType = cursor
+							.getString(PodDBAdapter.KEY_MIME_TYPE_INDEX);
+					if (mimeType
+							.equals(BitTorrentFeedMedia.MIME_TYPE_BITTORRENT)) {
+						item.setMedia(new BitTorrentFeedMedia(
+								mediaId,
+								item,
+								cursor.getInt(PodDBAdapter.KEY_DURATION_INDEX),
+								cursor.getInt(PodDBAdapter.KEY_POSITION_INDEX),
+								cursor.getLong(PodDBAdapter.KEY_SIZE_INDEX),
+								mimeType,
+								cursor.getString(PodDBAdapter.KEY_FILE_URL_INDEX),
+								cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
+								cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
+								playbackCompletionDate,
+								cursor.getString(PodDBAdapter.KEY_LOCAL_MEDIA_URL_INDEX),
+								cursor.getString(PodDBAdapter.KEY_STREAM_URL_INDEX)));
+					} else {
+						item.setMedia(new EnclosedFeedMedia(
+								mediaId,
+								item,
+								cursor.getInt(PodDBAdapter.KEY_DURATION_INDEX),
+								cursor.getInt(PodDBAdapter.KEY_POSITION_INDEX),
+								cursor.getLong(PodDBAdapter.KEY_SIZE_INDEX),
+								mimeType,
+								cursor.getString(PodDBAdapter.KEY_FILE_URL_INDEX),
+								cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
+								cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
+								playbackCompletionDate));
+					}
 					if (playbackCompletionDate != null) {
 						playbackHistory.add(item);
 					}

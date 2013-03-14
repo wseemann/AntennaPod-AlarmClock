@@ -5,6 +5,7 @@ import java.util.List;
 import android.content.SharedPreferences;
 import android.os.Parcelable;
 import android.util.Log;
+import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
 import de.danoeh.antennapod.feed.Chapter;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
@@ -143,6 +144,7 @@ public interface Playable extends Parcelable {
 			// ADD new Playable types here:
 			switch (type) {
 			case EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA:
+			case BitTorrentFeedMedia.PLAYABLE_TYPE_BITTORRENT_MEDIA:
 				long feedId = pref.getLong(EnclosedFeedMedia.PREF_FEED_ID, -1);
 				long mediaId = pref.getLong(EnclosedFeedMedia.PREF_MEDIA_ID, -1);
 				if (feedId != -1 && mediaId != -1) {

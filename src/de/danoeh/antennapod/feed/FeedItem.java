@@ -145,7 +145,7 @@ public class FeedItem extends FeedComponent {
 		return media;
 	}
 
-	public void setMedia(EnclosedFeedMedia media) {
+	public void setMedia(FeedMedia media) {
 		this.media = media;
 	}
 
