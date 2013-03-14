@@ -59,6 +59,7 @@ public class FeedItemMenuHandler {
 				&& (!downloading);
 		boolean isPlaying = hasMedia
 				&& selectedItem.getState() == FeedItem.State.PLAYING;
+		boolean streamAvailable = hasMedia && selectedItem.getMedia().streamAvailable();
 
 		FeedItem.State state = selectedItem.getState();
 
@@ -72,7 +73,7 @@ public class FeedItemMenuHandler {
 		if (!notLoadedAndNotLoading) {
 			mi.setItemVisibility(R.id.download_item, false);
 		}
-		if (!(notLoadedAndNotLoading | downloading) | isPlaying) {
+		if (!(notLoadedAndNotLoading | downloading) | isPlaying | !streamAvailable) {
 			mi.setItemVisibility(R.id.stream_item, false);
 		}
 		if (!downloading) {
