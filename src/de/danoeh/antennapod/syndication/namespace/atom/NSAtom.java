@@ -2,6 +2,10 @@ package de.danoeh.antennapod.syndication.namespace.atom;
 
 import org.xml.sax.Attributes;
 
+import android.util.Log;
+
+import de.danoeh.antennapod.AppConfig;
+import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
@@ -68,17 +72,29 @@ public class NSAtom extends Namespace {
 				if (rel == null || rel.equals(LINK_REL_ALTERNATE)) {
 					state.getCurrentItem().setLink(href);
 				} else if (rel.equals(LINK_REL_ENCLOSURE)) {
-					String strSize = attributes.getValue(LINK_LENGTH);
 					long size = 0;
-					if (strSize != null)
-						size = Long.parseLong(strSize);
 					String type = attributes.getValue(LINK_TYPE);
+					String mimeTypeFromUrl = null;
+					try {
+						size = Long.parseLong(attributes.getValue(LINK_LENGTH));
+					} catch (NumberFormatException e) {
+						if (AppConfig.DEBUG)
+							Log.d(TAG, "Length attribute could not be parsed.");
+					}
 					if (SyndTypeUtils.enclosureTypeValid(type)
-							|| (type = SyndTypeUtils
-									.getValidMimeTypeFromUrl(href)) != null) {
+							|| ((mimeTypeFromUrl = SyndTypeUtils
+									.getValidMimeTypeFromUrl(href)) != null)) {
+						if (mimeTypeFromUrl != null) {
+							type = mimeTypeFromUrl;
+						}
 						state.getCurrentItem().setMedia(
-								new EnclosedFeedMedia(state.getCurrentItem(), href,
-										size, type));
+								new EnclosedFeedMedia(state.getCurrentItem(),
+										href, size, type));
+					} else if (type
+							.equals(BitTorrentFeedMedia.MIME_TYPE_BITTORRENT)) {
+						state.getCurrentItem().setMedia(
+								new BitTorrentFeedMedia(state.getCurrentItem(),
+										href, size, type));
 					}
 				} else if (rel.equals(LINK_REL_PAYMENT)) {
 					state.getCurrentItem().setPaymentLink(href);
