@@ -6,9 +6,9 @@ import android.content.SharedPreferences;
 import android.os.Parcelable;
 import android.util.Log;
 import de.danoeh.antennapod.feed.Chapter;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedManager;
-import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.feed.MediaType;
 
 /** Interface for objects that can be played by the PlaybackService. */
@@ -142,9 +142,9 @@ public interface Playable extends Parcelable {
 				SharedPreferences pref) {
 			// ADD new Playable types here:
 			switch (type) {
-			case FeedMedia.PLAYABLE_TYPE_FEEDMEDIA:
-				long feedId = pref.getLong(FeedMedia.PREF_FEED_ID, -1);
-				long mediaId = pref.getLong(FeedMedia.PREF_MEDIA_ID, -1);
+			case EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA:
+				long feedId = pref.getLong(EnclosedFeedMedia.PREF_FEED_ID, -1);
+				long mediaId = pref.getLong(EnclosedFeedMedia.PREF_MEDIA_ID, -1);
 				if (feedId != -1 && mediaId != -1) {
 					Feed feed = FeedManager.getInstance().getFeed(feedId);
 					if (feed != null) {

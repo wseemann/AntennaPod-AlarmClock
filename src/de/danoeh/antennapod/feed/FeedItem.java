@@ -4,8 +4,6 @@ import java.lang.ref.SoftReference;
 import java.util.Date;
 import java.util.List;
 
-import de.danoeh.antennapod.preferences.PlaybackPreferences;
-
 /**
  * Data Object for a XML message
  * 
@@ -147,7 +145,7 @@ public class FeedItem extends FeedComponent {
 		return media;
 	}
 
-	public void setMedia(FeedMedia media) {
+	public void setMedia(EnclosedFeedMedia media) {
 		this.media = media;
 	}
 

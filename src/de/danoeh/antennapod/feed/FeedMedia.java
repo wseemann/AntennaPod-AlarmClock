@@ -9,23 +9,32 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import de.danoeh.antennapod.PodcastApp;
 import de.danoeh.antennapod.preferences.PlaybackPreferences;
-import de.danoeh.antennapod.util.ChapterUtils;
 import de.danoeh.antennapod.util.playback.Playable;
 
-public class FeedMedia extends FeedFile implements Playable {
+/**
+ * Represents a media file that is attached to a feeditem. The download URL
+ * attribute from FeedFile points to the resource set in the feed. The file url
+ * points to the location where the resource from the feed has been saved.
+ */
+public abstract class FeedMedia extends FeedFile implements Playable {
 
 	public static final int FEEDFILETYPE_FEEDMEDIA = 2;
-	public static final int PLAYABLE_TYPE_FEEDMEDIA = 1;
-
 	public static final String PREF_MEDIA_ID = "FeedMedia.PrefMediaId";
 	public static final String PREF_FEED_ID = "FeedMedia.PrefFeedId";
+	protected int duration;
+	protected int position;
+	protected long size;
+	protected String mime_type;
+	protected FeedItem item;
+	protected Date playbackCompletionDate;
 
-	private int duration;
-	private int position; // Current position in file
-	private long size; // File size in Byte
-	private String mime_type;
-	private FeedItem item;
-	private Date playbackCompletionDate;
+	/** Points to a local media file that can be played by the playback service. */
+	protected String localFileUrl;
+
+	/**
+	 * Points to a remote resource that can be streamed by the playback service.
+	 */
+	protected String streamUrl;
 
 	public FeedMedia(FeedItem i, String download_url, long size,
 			String mime_type) {
@@ -37,7 +46,8 @@ public class FeedMedia extends FeedFile implements Playable {
 
 	public FeedMedia(long id, FeedItem item, int duration, int position,
 			long size, String mime_type, String file_url, String download_url,
-			boolean downloaded, Date playbackCompletionDate) {
+			boolean downloaded, Date playbackCompletionDate,
+			String localFileUrl, String streamUrl) {
 		super(file_url, download_url, downloaded);
 		this.id = id;
 		this.item = item;
@@ -46,6 +56,8 @@ public class FeedMedia extends FeedFile implements Playable {
 		this.size = size;
 		this.mime_type = mime_type;
 		this.playbackCompletionDate = playbackCompletionDate;
+		this.localFileUrl = localFileUrl;
+		this.streamUrl = streamUrl;
 	}
 
 	public FeedMedia(long id, FeedItem item) {
@@ -102,15 +114,6 @@ public class FeedMedia extends FeedFile implements Playable {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Reads playback preferences to determine whether this FeedMedia object is
-	 * currently being played.
-	 */
-	public boolean isPlaying() {
-		return PlaybackPreferences.getCurrentlyPlayingMedia() == FeedMedia.PLAYABLE_TYPE_FEEDMEDIA
-				&& PlaybackPreferences.getCurrentlyPlayingFeedMediaId() == id;
 	}
 
 	@Override
@@ -195,13 +198,6 @@ public class FeedMedia extends FeedFile implements Playable {
 	}
 
 	@Override
-	public void loadMetadata() throws PlayableException {
-		if (getChapters() == null) {
-			ChapterUtils.loadChaptersFromStreamUrl(this);
-		}
-	}
-
-	@Override
 	public String getEpisodeTitle() {
 		if (getItem().getTitle() != null) {
 			return getItem().getTitle();
@@ -241,22 +237,22 @@ public class FeedMedia extends FeedFile implements Playable {
 
 	@Override
 	public String getLocalMediaUrl() {
-		return file_url;
+		return localFileUrl;
 	}
 
 	@Override
 	public String getStreamUrl() {
-		return download_url;
+		return streamUrl;
 	}
 
 	@Override
 	public boolean localFileAvailable() {
-		return isDownloaded() && file_url != null;
+		return isDownloaded() && getLocalMediaUrl() != null;
 	}
 
 	@Override
 	public boolean streamAvailable() {
-		return download_url != null;
+		return streamUrl != null;
 	}
 
 	@Override
@@ -272,11 +268,6 @@ public class FeedMedia extends FeedFile implements Playable {
 	@Override
 	public void onPlaybackCompleted() {
 
-	}
-
-	@Override
-	public int getPlayableType() {
-		return PLAYABLE_TYPE_FEEDMEDIA;
 	}
 
 	@Override
@@ -329,4 +320,9 @@ public class FeedMedia extends FeedFile implements Playable {
 			return new FeedMedia[size];
 		}
 	};
+
+	public boolean isPlaying() {
+		return PlaybackPreferences.getCurrentlyPlayingMedia() == getPlayableType()
+				&& PlaybackPreferences.getCurrentlyPlayingFeedMediaId() == id;
+	}
 }

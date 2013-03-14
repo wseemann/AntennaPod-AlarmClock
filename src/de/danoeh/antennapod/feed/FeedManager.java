@@ -180,7 +180,7 @@ public class FeedManager {
 
 			SharedPreferences prefs = PreferenceManager
 					.getDefaultSharedPreferences(context);
-			if (PlaybackPreferences.getCurrentlyPlayingMedia() == FeedMedia.PLAYABLE_TYPE_FEEDMEDIA) {
+			if (PlaybackPreferences.getCurrentlyPlayingMedia() == EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA) {
 				if (media.getId() == PlaybackPreferences
 						.getCurrentlyPlayingFeedMediaId()) {
 					SharedPreferences.Editor editor = prefs.edit();
@@ -205,7 +205,7 @@ public class FeedManager {
 	public void deleteFeed(final Context context, final Feed feed) {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context.getApplicationContext());
-		if (PlaybackPreferences.getCurrentlyPlayingMedia() == FeedMedia.PLAYABLE_TYPE_FEEDMEDIA
+		if (PlaybackPreferences.getCurrentlyPlayingMedia() == EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA
 				&& PlaybackPreferences.getLastPlayedFeedId() == feed.getId()) {
 			context.sendBroadcast(new Intent(
 					PlaybackService.ACTION_SHUTDOWN_PLAYBACK_SERVICE));
@@ -1133,7 +1133,7 @@ public class FeedManager {
 	 * Updates Information of an existing Feedmedia object. Uses external
 	 * adapter.
 	 */
-	private void setFeedImage(FeedMedia media, PodDBAdapter adapter) {
+	private void setFeedImage(EnclosedFeedMedia media, PodDBAdapter adapter) {
 		if (adapter != null) {
 			adapter.setMedia(media);
 		} else {
@@ -1411,7 +1411,7 @@ public class FeedManager {
 						.getLong(PodDBAdapter.IDX_FI_SMALL_MEDIA);
 				if (mediaId != 0) {
 					mediaIds.add(String.valueOf(mediaId));
-					item.setMedia(new FeedMedia(mediaId, item));
+					item.setMedia(new EnclosedFeedMedia(mediaId, item));
 				}
 				item.setRead((itemlistCursor
 						.getInt(PodDBAdapter.IDX_FI_SMALL_READ) > 0) ? true
@@ -1490,7 +1490,7 @@ public class FeedManager {
 								playbackCompletionTime);
 					}
 
-					item.setMedia(new FeedMedia(
+					item.setMedia(new EnclosedFeedMedia(
 							mediaId,
 							item,
 							cursor.getInt(PodDBAdapter.KEY_DURATION_INDEX),
@@ -1543,7 +1543,7 @@ public class FeedManager {
 					case FeedImage.FEEDFILETYPE_FEEDIMAGE:
 						feedfile = getFeedImage(feedfileId);
 						break;
-					case FeedMedia.FEEDFILETYPE_FEEDMEDIA:
+					case EnclosedFeedMedia.FEEDFILETYPE_FEEDMEDIA:
 						feedfile = getFeedMedia(feedfileId);
 					}
 				}

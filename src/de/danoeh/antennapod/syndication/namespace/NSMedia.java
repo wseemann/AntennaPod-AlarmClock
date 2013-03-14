@@ -6,7 +6,7 @@ import org.xml.sax.Attributes;
 
 import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
-import de.danoeh.antennapod.feed.FeedMedia;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.syndication.handler.HandlerState;
 import de.danoeh.antennapod.syndication.util.SyndTypeUtils;
 
@@ -55,7 +55,7 @@ public class NSMedia extends Namespace {
 				}
 				
 				state.getCurrentItem().setMedia(
-						new FeedMedia(state.getCurrentItem(), url, size, type));
+						new EnclosedFeedMedia(state.getCurrentItem(), url, size, type));
 			}
 		}
 		return new SyndElement(localName, this);

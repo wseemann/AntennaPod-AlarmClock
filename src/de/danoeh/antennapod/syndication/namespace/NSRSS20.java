@@ -4,9 +4,9 @@ import org.xml.sax.Attributes;
 
 import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
-import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.syndication.handler.HandlerState;
 import de.danoeh.antennapod.syndication.util.SyndDateUtils;
 import de.danoeh.antennapod.syndication.util.SyndTypeUtils;
@@ -61,7 +61,7 @@ public class NSRSS20 extends Namespace {
 						Log.d(TAG, "Length attribute could not be parsed.");
 				}
 				state.getCurrentItem().setMedia(
-						new FeedMedia(state.getCurrentItem(), url, size, type));
+						new EnclosedFeedMedia(state.getCurrentItem(), url, size, type));
 			}
 
 		} else if (localName.equals(IMAGE)) {

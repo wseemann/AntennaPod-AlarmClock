@@ -1,7 +1,5 @@
 package de.danoeh.antennapod.activity;
 
-import java.io.File;
-
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;

@@ -51,14 +51,13 @@ import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.DownloadActivity;
 import de.danoeh.antennapod.activity.DownloadLogActivity;
 import de.danoeh.antennapod.asynctask.DownloadStatus;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.EventDistributor;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedFile;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
 import de.danoeh.antennapod.feed.FeedManager;
-import de.danoeh.antennapod.feed.FeedMedia;
-import de.danoeh.antennapod.preferences.UserPreferences;
 import de.danoeh.antennapod.storage.DownloadRequestException;
 import de.danoeh.antennapod.storage.DownloadRequester;
 import de.danoeh.antennapod.syndication.handler.FeedHandler;
@@ -268,8 +267,8 @@ public class DownloadService extends Service {
 								}
 								bigText.append("\u2022 " + feed.getTitle());
 							}
-						} else if (f.getClass() == FeedMedia.class) {
-							FeedMedia media = (FeedMedia) f;
+						} else if (f.getClass() == EnclosedFeedMedia.class) {
+							EnclosedFeedMedia media = (EnclosedFeedMedia) f;
 							if (media.getItem().getTitle() != null) {
 								if (i > 0) {
 									bigText.append("\n");
@@ -447,7 +446,7 @@ public class DownloadService extends Service {
 							handleCompletedFeedDownload(status);
 						} else if (download.getClass() == FeedImage.class) {
 							handleCompletedImageDownload(status);
-						} else if (download.getClass() == FeedMedia.class) {
+						} else if (download.getClass() == EnclosedFeedMedia.class) {
 							handleCompletedFeedMediaDownload(status);
 						}
 					} else {
@@ -804,12 +803,12 @@ public class DownloadService extends Service {
 
 	/** Handles a completed media download. */
 	class MediaHandlerThread implements Runnable {
-		private FeedMedia media;
+		private EnclosedFeedMedia media;
 		private DownloadStatus status;
 
 		public MediaHandlerThread(DownloadStatus status) {
 			super();
-			this.media = (FeedMedia) status.getFeedFile();
+			this.media = (EnclosedFeedMedia) status.getFeedFile();
 			this.status = status;
 		}
 

@@ -15,6 +15,7 @@ import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.asynctask.DownloadStatus;
 import de.danoeh.antennapod.feed.Chapter;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
@@ -420,8 +421,8 @@ public class PodDBAdapter {
 				values.put(KEY_FEEDFILETYPE, Feed.FEEDFILETYPE_FEED);
 			} else if (status.getFeedFile().getClass() == FeedImage.class) {
 				values.put(KEY_FEEDFILETYPE, FeedImage.FEEDFILETYPE_FEEDIMAGE);
-			} else if (status.getFeedFile().getClass() == FeedMedia.class) {
-				values.put(KEY_FEEDFILETYPE, FeedMedia.FEEDFILETYPE_FEEDMEDIA);
+			} else if (status.getFeedFile().getClass() == EnclosedFeedMedia.class) {
+				values.put(KEY_FEEDFILETYPE, EnclosedFeedMedia.FEEDFILETYPE_FEEDMEDIA);
 			}
 		}
 		values.put(KEY_REASON, status.getReason());

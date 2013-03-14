@@ -11,10 +11,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.asynctask.DownloadStatus;
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedFile;
 import de.danoeh.antennapod.feed.FeedImage;
-import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.service.download.Downloader;
 import de.danoeh.antennapod.util.Converter;
 import de.danoeh.antennapod.util.ThemeUtils;
@@ -64,8 +64,8 @@ public class DownloadlistAdapter extends ArrayAdapter<Downloader> {
 		}
 
 		String titleText = null;
-		if (feedFile.getClass() == FeedMedia.class) {
-			titleText = ((FeedMedia) feedFile).getItem().getTitle();
+		if (feedFile.getClass() == EnclosedFeedMedia.class) {
+			titleText = ((EnclosedFeedMedia) feedFile).getItem().getTitle();
 		} else if (feedFile.getClass() == Feed.class) {
 			titleText = ((Feed) feedFile).getTitle();
 		} else if (feedFile.getClass() == FeedImage.class) {

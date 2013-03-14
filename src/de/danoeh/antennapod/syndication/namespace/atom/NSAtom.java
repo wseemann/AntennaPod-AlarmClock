@@ -2,9 +2,9 @@ package de.danoeh.antennapod.syndication.namespace.atom;
 
 import org.xml.sax.Attributes;
 
+import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
-import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.syndication.handler.HandlerState;
 import de.danoeh.antennapod.syndication.namespace.NSRSS20;
 import de.danoeh.antennapod.syndication.namespace.Namespace;
@@ -77,7 +77,7 @@ public class NSAtom extends Namespace {
 							|| (type = SyndTypeUtils
 									.getValidMimeTypeFromUrl(href)) != null) {
 						state.getCurrentItem().setMedia(
-								new FeedMedia(state.getCurrentItem(), href,
+								new EnclosedFeedMedia(state.getCurrentItem(), href,
 										size, type));
 					}
 				} else if (rel.equals(LINK_REL_PAYMENT)) {
