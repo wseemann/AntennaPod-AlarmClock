@@ -1,5 +1,6 @@
 package de.danoeh.antennapod.feed;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -76,20 +77,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 	}
 
 	/** Uses mimetype to determine the type of media. */
-	public MediaType getMediaType() {
-		if (mime_type == null || mime_type.isEmpty()) {
-			return MediaType.UNKNOWN;
-		} else {
-			if (mime_type.startsWith("audio")) {
-				return MediaType.AUDIO;
-			} else if (mime_type.startsWith("video")) {
-				return MediaType.VIDEO;
-			} else if (mime_type.equals("application/ogg")) {
-				return MediaType.AUDIO;
-			}
-		}
-		return MediaType.UNKNOWN;
-	}
+	public abstract MediaType getMediaType();
 
 	public void updateFromOther(FeedMedia other) {
 		super.updateFromOther(other);
@@ -325,4 +313,23 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 		return PlaybackPreferences.getCurrentlyPlayingMedia() == getPlayableType()
 				&& PlaybackPreferences.getCurrentlyPlayingFeedMediaId() == id;
 	}
+
+	/** Returns true if the local media file exists. */
+	public boolean localMediaFileExists() {
+		if (getLocalMediaUrl() == null) {
+			return false;
+		} else {
+			File f = new File(getLocalMediaUrl());
+			return f.exists();
+		}
+	}
+
+	public void setLocalFileUrl(String localFileUrl) {
+		this.localFileUrl = localFileUrl;
+	}
+
+	public void setStreamUrl(String streamUrl) {
+		this.streamUrl = streamUrl;
+	}
+
 }

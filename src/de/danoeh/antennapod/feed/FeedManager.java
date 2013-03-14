@@ -130,10 +130,10 @@ public class FeedManager {
 			boolean startWhenPrepared, boolean shouldStream) {
 		try {
 			if (!shouldStream) {
-				if (media.fileExists() == false) {
+				if (!media.localMediaFileExists()) {
 					throw new MediaFileNotFoundException(
-							"No episode was found at " + media.getFile_url(),
-							media);
+							"No episode was found at "
+									+ media.getLocalMediaUrl(), media);
 				}
 			}
 			// Start playback Service
@@ -170,30 +170,29 @@ public class FeedManager {
 	public boolean deleteFeedMedia(Context context, FeedMedia media) {
 		boolean result = false;
 		if (media.isDownloaded()) {
-			File mediaFile = new File(media.file_url);
-			if (mediaFile.exists()) {
-				result = mediaFile.delete();
+			if (media.localMediaFileExists()) {
+				result = new File(media.getLocalMediaUrl()).delete();
+			}
+			if (media.getLocalMediaUrl() != media.getFile_url()
+					&& media.fileExists()) {
+				new File(media.getFile_url()).delete();
 			}
 			media.setDownloaded(false);
 			media.setFile_url(null);
+			media.setLocalFileUrl(null);
 			setFeedMedia(context, media);
 
 			SharedPreferences prefs = PreferenceManager
 					.getDefaultSharedPreferences(context);
-			if (PlaybackPreferences.getCurrentlyPlayingMedia() == EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA) {
-				if (media.getId() == PlaybackPreferences
-						.getCurrentlyPlayingFeedMediaId()) {
-					SharedPreferences.Editor editor = prefs.edit();
-					editor.putBoolean(
-							PlaybackPreferences.PREF_CURRENT_EPISODE_IS_STREAM,
-							true);
-					editor.commit();
-				}
-				if (PlaybackPreferences.getCurrentlyPlayingFeedMediaId() == media
-						.getId()) {
-					context.sendBroadcast(new Intent(
-							PlaybackService.ACTION_SHUTDOWN_PLAYBACK_SERVICE));
-				}
+			if (media.isPlaying()) {
+				SharedPreferences.Editor editor = prefs.edit();
+				editor.putBoolean(
+						PlaybackPreferences.PREF_CURRENT_EPISODE_IS_STREAM,
+						true);
+				editor.commit();
+
+				context.sendBroadcast(new Intent(
+						PlaybackService.ACTION_SHUTDOWN_PLAYBACK_SERVICE));
 			}
 		}
 		if (AppConfig.DEBUG)
