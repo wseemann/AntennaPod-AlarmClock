@@ -30,6 +30,7 @@ import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.feed.Chapter;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedManager;
+import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.preferences.PlaybackPreferences;
 import de.danoeh.antennapod.service.PlaybackService;
 import de.danoeh.antennapod.service.PlayerStatus;
@@ -201,9 +202,9 @@ public abstract class PlaybackController {
 						PlaybackService.EXTRA_PREPARE_IMMEDIATELY, false);
 				boolean fileExists = media.localFileAvailable();
 				boolean lastIsStream = PlaybackPreferences.getCurrentEpisodeIsStream();
-				if (!fileExists && !lastIsStream && media instanceof EnclosedFeedMedia) {
+				if (!fileExists && !lastIsStream && media instanceof FeedMedia) {
 					FeedManager.getInstance().notifyMissingFeedMediaFile(
-							activity, (EnclosedFeedMedia) media);
+							activity, (FeedMedia) media);
 				}
 				serviceIntent.putExtra(PlaybackService.EXTRA_SHOULD_STREAM,
 						lastIsStream || !fileExists);

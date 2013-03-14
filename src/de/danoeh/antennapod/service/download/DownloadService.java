@@ -268,8 +268,8 @@ public class DownloadService extends Service {
 								}
 								bigText.append("\u2022 " + feed.getTitle());
 							}
-						} else if (f.getClass() == EnclosedFeedMedia.class) {
-							EnclosedFeedMedia media = (EnclosedFeedMedia) f;
+						} else if (f instanceof FeedMedia) {
+							FeedMedia media = (FeedMedia) f;
 							if (media.getItem().getTitle() != null) {
 								if (i > 0) {
 									bigText.append("\n");
@@ -804,12 +804,12 @@ public class DownloadService extends Service {
 
 	/** Handles a completed media download. */
 	class MediaHandlerThread implements Runnable {
-		private EnclosedFeedMedia media;
+		private FeedMedia media;
 		private DownloadStatus status;
 
 		public MediaHandlerThread(DownloadStatus status) {
 			super();
-			this.media = (EnclosedFeedMedia) status.getFeedFile();
+			this.media = (FeedMedia) status.getFeedFile();
 			this.status = status;
 		}
 

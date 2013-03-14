@@ -15,6 +15,7 @@ import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedManager;
+import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.util.DownloadError;
 
 /** Displays a list of DownloadStatus entries. */
@@ -50,7 +51,7 @@ public class DownloadLogAdapter extends BaseAdapter {
 		}
 		if (status.getFeedfileType() == Feed.FEEDFILETYPE_FEED) {
 			holder.type.setText(R.string.download_type_feed);
-		} else if (status.getFeedfileType() == EnclosedFeedMedia.FEEDFILETYPE_FEEDMEDIA) {
+		} else if (status.getFeedfileType() == FeedMedia.FEEDFILETYPE_FEEDMEDIA) {
 			holder.type.setText(R.string.download_type_media);
 		} else if (status.getFeedfileType() == FeedImage.FEEDFILETYPE_FEEDIMAGE) {
 			holder.type.setText(R.string.download_type_image);

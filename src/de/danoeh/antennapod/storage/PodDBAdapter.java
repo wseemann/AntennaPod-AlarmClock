@@ -430,8 +430,8 @@ public class PodDBAdapter {
 				values.put(KEY_FEEDFILETYPE, Feed.FEEDFILETYPE_FEED);
 			} else if (status.getFeedFile().getClass() == FeedImage.class) {
 				values.put(KEY_FEEDFILETYPE, FeedImage.FEEDFILETYPE_FEEDIMAGE);
-			} else if (status.getFeedFile().getClass() == EnclosedFeedMedia.class) {
-				values.put(KEY_FEEDFILETYPE, EnclosedFeedMedia.FEEDFILETYPE_FEEDMEDIA);
+			} else if (status.getFeedFile().getClass() == FeedMedia.class) {
+				values.put(KEY_FEEDFILETYPE, FeedMedia.FEEDFILETYPE_FEEDMEDIA);
 			}
 		}
 		values.put(KEY_REASON, status.getReason());

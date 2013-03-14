@@ -204,7 +204,8 @@ public class FeedManager {
 	public void deleteFeed(final Context context, final Feed feed) {
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(context.getApplicationContext());
-		if (PlaybackPreferences.getCurrentlyPlayingMedia() == EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA
+		if ((PlaybackPreferences.getCurrentlyPlayingMedia() == EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA || PlaybackPreferences
+				.getCurrentlyPlayingMedia() == BitTorrentFeedMedia.PLAYABLE_TYPE_BITTORRENT_MEDIA)
 				&& PlaybackPreferences.getLastPlayedFeedId() == feed.getId()) {
 			context.sendBroadcast(new Intent(
 					PlaybackService.ACTION_SHUTDOWN_PLAYBACK_SERVICE));
@@ -1132,7 +1133,7 @@ public class FeedManager {
 	 * Updates Information of an existing Feedmedia object. Uses external
 	 * adapter.
 	 */
-	private void setFeedImage(EnclosedFeedMedia media, PodDBAdapter adapter) {
+	private void setFeedImage(FeedMedia media, PodDBAdapter adapter) {
 		if (adapter != null) {
 			adapter.setMedia(media);
 		} else {
@@ -1561,7 +1562,7 @@ public class FeedManager {
 					case FeedImage.FEEDFILETYPE_FEEDIMAGE:
 						feedfile = getFeedImage(feedfileId);
 						break;
-					case EnclosedFeedMedia.FEEDFILETYPE_FEEDMEDIA:
+					case FeedMedia.FEEDFILETYPE_FEEDMEDIA:
 						feedfile = getFeedMedia(feedfileId);
 					}
 				}

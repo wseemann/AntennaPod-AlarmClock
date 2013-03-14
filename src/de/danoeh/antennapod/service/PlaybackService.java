@@ -45,6 +45,7 @@ import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.FeedComponent;
 import de.danoeh.antennapod.feed.FeedItem;
 import de.danoeh.antennapod.feed.FeedManager;
+import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.feed.MediaType;
 import de.danoeh.antennapod.preferences.PlaybackPreferences;
 import de.danoeh.antennapod.preferences.UserPreferences;
@@ -693,18 +694,18 @@ public class PlaybackService extends Service {
 		boolean isInQueue = false;
 		FeedItem nextItem = null;
 
-		if (media instanceof EnclosedFeedMedia) {
-			FeedItem item = ((EnclosedFeedMedia) media).getItem();
-			((EnclosedFeedMedia) media).setPlaybackCompletionDate(new Date());
+		if (media instanceof FeedMedia) {
+			FeedItem item = ((FeedMedia) media).getItem();
+			((FeedMedia) media).setPlaybackCompletionDate(new Date());
 			manager.markItemRead(PlaybackService.this, item, true, true);
 			nextItem = manager.getQueueSuccessorOfItem(item);
-			isInQueue = media instanceof EnclosedFeedMedia
-					&& manager.isInQueue(((EnclosedFeedMedia) media).getItem());
+			isInQueue = media instanceof FeedMedia
+					&& manager.isInQueue(((FeedMedia) media).getItem());
 			if (isInQueue) {
 				manager.removeQueueItem(PlaybackService.this, item);
 			}
 			manager.addItemToPlaybackHistory(PlaybackService.this, item);
-			manager.setFeedMedia(PlaybackService.this, (EnclosedFeedMedia) media);
+			manager.setFeedMedia(PlaybackService.this, (FeedMedia) media);
 			long autoDeleteMediaId = ((FeedComponent) media).getId();
 			if (shouldStream) {
 				autoDeleteMediaId = -1;
@@ -897,8 +898,8 @@ public class PlaybackService extends Service {
 			editor.putBoolean(
 					PlaybackPreferences.PREF_CURRENT_EPISODE_IS_VIDEO,
 					playingVideo);
-			if (media instanceof EnclosedFeedMedia) {
-				EnclosedFeedMedia fMedia = (EnclosedFeedMedia) media;
+			if (media instanceof FeedMedia) {
+				FeedMedia fMedia = (FeedMedia) media;
 				editor.putLong(
 						PlaybackPreferences.PREF_CURRENTLY_PLAYING_FEED_ID,
 						fMedia.getItem().getFeed().getId());
