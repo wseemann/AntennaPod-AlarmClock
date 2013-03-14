@@ -58,6 +58,7 @@ import de.danoeh.antennapod.feed.FeedFile;
 import de.danoeh.antennapod.feed.FeedImage;
 import de.danoeh.antennapod.feed.FeedItem;
 import de.danoeh.antennapod.feed.FeedManager;
+import de.danoeh.antennapod.feed.FeedMedia;
 import de.danoeh.antennapod.storage.DownloadRequestException;
 import de.danoeh.antennapod.storage.DownloadRequester;
 import de.danoeh.antennapod.syndication.handler.FeedHandler;
@@ -446,7 +447,7 @@ public class DownloadService extends Service {
 							handleCompletedFeedDownload(status);
 						} else if (download.getClass() == FeedImage.class) {
 							handleCompletedImageDownload(status);
-						} else if (download.getClass() == EnclosedFeedMedia.class) {
+						} else if (download instanceof FeedMedia) {
 							handleCompletedFeedMediaDownload(status);
 						}
 					} else {
@@ -820,7 +821,7 @@ public class DownloadService extends Service {
 			// Get duration
 			MediaPlayer mediaplayer = new MediaPlayer();
 			try {
-				mediaplayer.setDataSource(media.getFile_url());
+				mediaplayer.setDataSource(media.getLocalMediaUrl());
 				mediaplayer.prepare();
 				media.setDuration(mediaplayer.getDuration());
 				if (AppConfig.DEBUG)
