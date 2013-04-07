@@ -53,21 +53,28 @@ public class BitTorrentFeedMedia extends FeedMedia {
 		return MediaType.UNKNOWN;
 	}
 
-	private MediaType retrieveMediaType() {
+	/** Returns download url without the .torrent. */
+	public String getUrlWithoutTorrentExtension() {
 		if (download_url != null) {
 			int lastIndex = download_url.lastIndexOf(".torrent");
 			if (lastIndex > 0) {
-				String type = SyndTypeUtils
-						.getValidMimeTypeFromUrl(download_url.substring(0,
-								lastIndex));
-				if (type != null) {
-					if (type.startsWith("audio")) {
-						return MediaType.AUDIO;
-					} else if (type.startsWith("video")) {
-						return MediaType.VIDEO;
-					} else if (type.equals("application/ogg")) {
-						return MediaType.AUDIO;
-					}
+				return download_url.substring(0, lastIndex);
+			}
+		}
+		return null;
+	}
+
+	private MediaType retrieveMediaType() {
+		String url = getUrlWithoutTorrentExtension();
+		if (url != null) {
+			String type = SyndTypeUtils.getValidMimeTypeFromUrl(url);
+			if (type != null) {
+				if (type.startsWith("audio")) {
+					return MediaType.AUDIO;
+				} else if (type.startsWith("video")) {
+					return MediaType.VIDEO;
+				} else if (type.equals("application/ogg")) {
+					return MediaType.AUDIO;
 				}
 			}
 		}

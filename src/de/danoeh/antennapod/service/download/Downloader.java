@@ -48,6 +48,7 @@ public abstract class Downloader extends Thread {
 
 	public void cancel() {
 		cancelled = true;
+		interrupt();
 	}
 
 }

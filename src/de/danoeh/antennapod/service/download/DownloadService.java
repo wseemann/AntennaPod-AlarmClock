@@ -51,6 +51,7 @@ import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.DownloadActivity;
 import de.danoeh.antennapod.activity.DownloadLogActivity;
 import de.danoeh.antennapod.asynctask.DownloadStatus;
+import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.EventDistributor;
 import de.danoeh.antennapod.feed.Feed;
@@ -391,21 +392,25 @@ public class DownloadService extends Service {
 	};
 
 	private Downloader getDownloader(DownloadStatus status) {
+		DownloaderCallback callback = new DownloaderCallback() {
+
+			@Override
+			public void onDownloadCompleted(final Downloader downloader) {
+				handler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						DownloadService.this.onDownloadCompleted(downloader);
+					}
+				});
+			}
+		};
+
+		if (status.getFeedFile() instanceof BitTorrentFeedMedia) {
+			return new BitTorrentDownloader(callback, status);
+		}
 		if (URLUtil.isHttpUrl(status.getFeedFile().getDownload_url())) {
-			return new HttpDownloader(new DownloaderCallback() {
-
-				@Override
-				public void onDownloadCompleted(final Downloader downloader) {
-					handler.post(new Runnable() {
-
-						@Override
-						public void run() {
-							DownloadService.this
-									.onDownloadCompleted(downloader);
-						}
-					});
-				}
-			}, status);
+			return new HttpDownloader(callback, status);
 		}
 		Log.e(TAG, "Could not find appropriate downloader for "
 				+ status.getFeedFile().getDownload_url());
