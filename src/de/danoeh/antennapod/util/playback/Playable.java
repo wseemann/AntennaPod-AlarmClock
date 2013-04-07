@@ -1,11 +1,17 @@
 package de.danoeh.antennapod.util.playback;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+
 import android.content.SharedPreferences;
+import android.media.MediaMetadataRetriever;
 import android.os.Parcelable;
 import android.util.Log;
 import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
+import de.danoeh.antennapod.asynctask.ImageLoader;
 import de.danoeh.antennapod.feed.Chapter;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
@@ -13,7 +19,8 @@ import de.danoeh.antennapod.feed.FeedManager;
 import de.danoeh.antennapod.feed.MediaType;
 
 /** Interface for objects that can be played by the PlaybackService. */
-public interface Playable extends Parcelable {
+public interface Playable extends Parcelable,
+		ImageLoader.ImageWorkerTaskResource {
 
 	/**
 	 * Save information about the playable in a preference so that it can be
@@ -25,10 +32,18 @@ public interface Playable extends Parcelable {
 
 	/**
 	 * This method is called from a separate thread by the PlaybackService.
-	 * Playable objects should load their metadata in this method (for example:
-	 * chapter marks).
+	 * Playable objects should load their metadata in this method. This method
+	 * should execute as quickly as possible and NOT load chapter marks if no
+	 * local file is available.
 	 */
 	public void loadMetadata() throws PlayableException;
+
+	/**
+	 * This method is called from a separate thread by the PlaybackService.
+	 * Playable objects should load their chapter marks in this method if no
+	 * local file was available when loadMetadata() was called.
+	 */
+	public void loadChapterMarks();
 
 	/** Returns the title of the episode that this playable represents */
 	public String getEpisodeTitle();
@@ -52,9 +67,6 @@ public interface Playable extends Parcelable {
 
 	/** Returns the title of the feed this Playable belongs to. */
 	public String getFeedTitle();
-
-	/** Returns a file url to an image or null if no such image exists. */
-	public String getImageFileUrl();
 
 	/**
 	 * Returns a unique identifier, for example a file url or an ID from a
@@ -195,5 +207,69 @@ public interface Playable extends Parcelable {
 
 	public static interface ShownoteLoaderCallback {
 		void onShownotesLoaded(String shownotes);
+	}
+
+	/** Uses local file as image resource if it is available. */
+	public static class DefaultPlayableImageLoader implements
+			ImageLoader.ImageWorkerTaskResource {
+		private Playable playable;
+
+		public DefaultPlayableImageLoader(Playable playable) {
+			if (playable == null) {
+				throw new IllegalArgumentException("Playable must not be null");
+			}
+			this.playable = playable;
+		}
+
+		@Override
+		public InputStream openImageInputStream() {
+			if (playable.localFileAvailable()
+					&& playable.getLocalMediaUrl() != null) {
+				MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+				try {
+					mmr.setDataSource(playable.getLocalMediaUrl());
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+					return null;
+				}
+				byte[] imgData = mmr.getEmbeddedPicture();
+				if (imgData != null) {
+					return new PublicByteArrayInputStream(imgData);
+
+				}
+			}
+			return null;
+		}
+
+		@Override
+		public String getImageLoaderCacheKey() {
+			return playable.getLocalMediaUrl();
+		}
+
+		@Override
+		public InputStream reopenImageInputStream(InputStream input) {
+			if (input instanceof PublicByteArrayInputStream) {
+				IOUtils.closeQuietly(input);
+				byte[] imgData = ((PublicByteArrayInputStream) input)
+						.getByteArray();
+				if (imgData != null) {
+					ByteArrayInputStream out = new ByteArrayInputStream(imgData);
+					return out;
+				}
+
+			}
+			return null;
+		}
+
+		private static class PublicByteArrayInputStream extends
+				ByteArrayInputStream {
+			public PublicByteArrayInputStream(byte[] buf) {
+				super(buf);
+			}
+
+			public byte[] getByteArray() {
+				return buf;
+			}
+		}
 	}
 }

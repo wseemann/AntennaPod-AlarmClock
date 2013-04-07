@@ -1,6 +1,8 @@
 package de.danoeh.antennapod.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -38,6 +40,9 @@ public class AudioplayerActivity extends MediaplayerActivity {
 	private static final int NUM_CONTENT_FRAGMENTS = 3;
 
 	final String TAG = "AudioplayerActivity";
+	private static final String PREFS = "AudioPlayerActivityPreferences";
+	private static final String PREF_KEY_SELECTED_FRAGMENT_POSITION = "selectedFragmentPosition";
+	private static final String PREF_PLAYABLE_ID = "playableId";
 
 	private Fragment[] detachedFragments;
 
@@ -54,6 +59,37 @@ public class AudioplayerActivity extends MediaplayerActivity {
 	private ImageButton butNavRight;
 
 	private void resetFragmentView() {
+		FragmentTransaction fT = getSupportFragmentManager().beginTransaction();
+
+		if (coverFragment != null) {
+			if (AppConfig.DEBUG)
+				Log.d(TAG, "Removing cover fragment");
+			fT.remove(coverFragment);
+		}
+		if (descriptionFragment != null) {
+			if (AppConfig.DEBUG)
+				Log.d(TAG, "Removing description fragment");
+			fT.remove(descriptionFragment);
+		}
+		if (chapterFragment != null) {
+			if (AppConfig.DEBUG)
+				Log.d(TAG, "Removing chapter fragment");
+			fT.remove(chapterFragment);
+		}
+		if (currentlyShownFragment != null) {
+			if (AppConfig.DEBUG)
+				Log.d(TAG, "Removing currently shown fragment");
+			fT.remove(currentlyShownFragment);
+		}
+		for (int i = 0; i < detachedFragments.length; i++) {
+			Fragment f = detachedFragments[i];
+			if (f != null) {
+				if (AppConfig.DEBUG)
+					Log.d(TAG, "Removing detached fragment");
+				fT.remove(f);
+			}
+		}
+		fT.commit();
 		currentlyShownFragment = null;
 		coverFragment = null;
 		descriptionFragment = null;
@@ -65,7 +101,8 @@ public class AudioplayerActivity extends MediaplayerActivity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		resetFragmentView();
+		if (AppConfig.DEBUG)
+			Log.d(TAG, "onStop");
 
 	}
 
@@ -75,6 +112,85 @@ public class AudioplayerActivity extends MediaplayerActivity {
 		super.onCreate(savedInstanceState);
 		getSupportActionBar().setDisplayShowTitleEnabled(false);
 		detachedFragments = new Fragment[NUM_CONTENT_FRAGMENTS];
+	}
+
+	private void savePreferences() {
+		if (AppConfig.DEBUG)
+			Log.d(TAG, "Saving preferences");
+		SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+		SharedPreferences.Editor editor = prefs.edit();
+		if (currentlyShownPosition >= 0 && controller != null
+				&& controller.getMedia() != null) {
+			editor.putInt(PREF_KEY_SELECTED_FRAGMENT_POSITION,
+					currentlyShownPosition);
+			editor.putString(PREF_PLAYABLE_ID, controller.getMedia()
+					.getIdentifier().toString());
+		} else {
+			editor.putInt(PREF_KEY_SELECTED_FRAGMENT_POSITION, -1);
+			editor.putString(PREF_PLAYABLE_ID, "");
+		}
+		editor.commit();
+
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// super.onSaveInstanceState(outState); would cause crash
+		if (AppConfig.DEBUG)
+			Log.d(TAG, "onSaveInstanceState");
+	}
+
+	@Override
+	protected void onPause() {
+		savePreferences();
+		resetFragmentView();
+		super.onPause();
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		restoreFromPreferences();
+	}
+
+	/**
+	 * Tries to restore the selected fragment position from the Activity's
+	 * preferences.
+	 * 
+	 * @return true if restoreFromPrefernces changed the activity's state
+	 * */
+	private boolean restoreFromPreferences() {
+		if (AppConfig.DEBUG)
+			Log.d(TAG, "Restoring instance state");
+		SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+		int savedPosition = prefs.getInt(PREF_KEY_SELECTED_FRAGMENT_POSITION,
+				-1);
+		String playableId = prefs.getString(PREF_PLAYABLE_ID, "");
+
+		if (savedPosition != -1
+				&& controller != null
+				&& controller.getMedia() != null
+				&& controller.getMedia().getIdentifier().toString()
+						.equals(playableId)) {
+			switchToFragment(savedPosition);
+			return true;
+		} else if (controller == null || controller.getMedia() == null) {
+			if (AppConfig.DEBUG)
+				Log.d(TAG,
+						"Couldn't restore from preferences: controller or media was null");
+		} else {
+			if (AppConfig.DEBUG)
+				Log.d(TAG,
+						"Couldn't restore from preferences: savedPosition was -1 or saved identifier and playable identifier didn't match.\nsavedPosition: "
+								+ savedPosition + ", id: " + playableId);
+
+		}
+		return false;
 	}
 
 	@Override
@@ -131,7 +247,7 @@ public class AudioplayerActivity extends MediaplayerActivity {
 	private void switchToFragment(int pos) {
 		if (AppConfig.DEBUG)
 			Log.d(TAG, "Switching contentView to position " + pos);
-		if (currentlyShownPosition != pos) {
+		if (currentlyShownPosition != pos && controller != null) {
 			Playable media = controller.getMedia();
 			if (media != null) {
 				FragmentTransaction ft = getSupportFragmentManager()
@@ -151,7 +267,7 @@ public class AudioplayerActivity extends MediaplayerActivity {
 				case POS_DESCR:
 					if (descriptionFragment == null) {
 						descriptionFragment = ItemDescriptionFragment
-								.newInstance(media);
+								.newInstance(media, true);
 					}
 					currentlyShownFragment = descriptionFragment;
 					break;
@@ -187,6 +303,7 @@ public class AudioplayerActivity extends MediaplayerActivity {
 						ft.add(R.id.contentView, currentlyShownFragment);
 					}
 					ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+					ft.disallowAddToBackStack();
 					ft.commit();
 					updateNavButtonDrawable();
 				}
@@ -211,8 +328,8 @@ public class AudioplayerActivity extends MediaplayerActivity {
 
 					@Override
 					public void run() {
-						ImageLoader.getInstance().loadThumbnailBitmap(
-								media.getImageFileUrl(), butNavLeft);
+						ImageLoader.getInstance().loadThumbnailBitmap(media,
+								butNavLeft);
 					}
 				});
 				butNavRight.setImageDrawable(drawables.getDrawable(1));
@@ -223,8 +340,8 @@ public class AudioplayerActivity extends MediaplayerActivity {
 
 					@Override
 					public void run() {
-						ImageLoader.getInstance().loadThumbnailBitmap(
-								media.getImageFileUrl(), butNavLeft);
+						ImageLoader.getInstance().loadThumbnailBitmap(media,
+								butNavLeft);
 					}
 				});
 				butNavRight.setImageDrawable(drawables.getDrawable(0));
@@ -291,7 +408,9 @@ public class AudioplayerActivity extends MediaplayerActivity {
 
 		}
 		if (currentlyShownPosition == -1) {
-			switchToFragment(POS_COVER);
+			if (!restoreFromPreferences()) {
+				switchToFragment(POS_COVER);
+			}
 		}
 		if (currentlyShownFragment instanceof AudioplayerContentFragment) {
 			((AudioplayerContentFragment) currentlyShownFragment)
@@ -331,6 +450,11 @@ public class AudioplayerActivity extends MediaplayerActivity {
 
 	public interface AudioplayerContentFragment {
 		public void onDataSetChanged(Playable media);
+	}
+
+	@Override
+	protected int getContentViewResourceId() {
+		return R.layout.audioplayer_activity;
 	}
 
 }

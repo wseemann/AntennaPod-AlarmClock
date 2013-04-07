@@ -3,6 +3,9 @@ package de.danoeh.antennapod.test;
 public class TestFeeds {
 
 	public static final String[] urls = {
+			"http://bitlove.org/wikigeeks/mp3/feed",
+			"http://bitlove.org/workingdraft/revisionen/feed",
+			"http://bitlove.org/wunderlich/podcast/feed",
 			"http://www.guardian.co.uk/global-development/series/global-development-podcast/rss",
 			"http://rss.sciam.com/sciam/60secsciencepodcast",
 			"http://rss.sciam.com/sciam/60-second-mind",
@@ -18,7 +21,6 @@ public class TestFeeds {
 			"http://bitlove.org/moepmoeporg/sundaymoaning/feed",
 			"http://bitlove.org/motofunk/anekdotkast/feed",
 			"http://bitlove.org/motofunk/motofunk/feed",
-			"http://bitlove.org/nerdinand/zch/feed",
 			"http://podcast.homerj.de/podcasts.xml",
 			"http://www.dradio.de/rss/podcast/sendungen/wissenschaftundbildung/",
 			"http://www.dradio.de/rss/podcast/sendungen/wirtschaftundverbraucher/",
@@ -170,7 +172,6 @@ public class TestFeeds {
 			"http://bitlove.org/ich-bin-radio/fir/feed",
 			"http://bitlove.org/ich-bin-radio/rsff/feed",
 			"http://bitlove.org/incerio/podcast/feed",
-			"http://bitlove.org/jagdfunk/jagdfunk/feed",
 			"http://bitlove.org/janlelis/rubykraut/feed",
 			"http://bitlove.org/jed/feed1/feed",
 			"http://bitlove.org/jupiterbroadcasting/coderradio/feed",
@@ -240,7 +241,6 @@ public class TestFeeds {
 			"http://bitlove.org/moepmoeporg/sundaymoaning/feed",
 			"http://bitlove.org/motofunk/anekdotkast/feed",
 			"http://bitlove.org/motofunk/motofunk/feed",
-			"http://bitlove.org/nerdinand/zch/feed",
 			"http://bitlove.org/netzpolitik/netzpolitik-podcast/feed",
 			"http://bitlove.org/netzpolitik/netzpolitik-tv/feed",
 			"http://bitlove.org/nischenkultur/soziopod/feed",
@@ -278,7 +278,6 @@ public class TestFeeds {
 			"http://bitlove.org/podsafepilot/psid/feed",
 			"http://bitlove.org/pratfm/strunt/feed",
 			"http://bitlove.org/pressrecord/podcast/feed",
-			"http://bitlove.org/pztv/alle_formate/feed",
 			"http://bitlove.org/qbi/datenkanal-mp3/feed",
 			"http://bitlove.org/qbi/datenkanal-ogg/feed",
 			"http://bitlove.org/quotidianitaet/quotidianitaet/feed",
@@ -343,10 +342,5 @@ public class TestFeeds {
 			"http://bitlove.org/weezerle/brandung/feed",
 			"http://bitlove.org/weezerle/guestcast/feed",
 			"http://bitlove.org/weezerle/stupalog/feed",
-			"http://bitlove.org/wikigeeks/wikigeeks-aac/feed",
-			"http://bitlove.org/wikigeeks/wikigeeks-mp3/feed",
-			"http://bitlove.org/wikigeeks/wikigeeks-ogg/feed",
-			"http://bitlove.org/workingdraft/revisionen/feed",
-			"http://bitlove.org/wunderlich/podcast/feed",
 			"http://www.cczwei.de/rss_tvissues.php" };
 }

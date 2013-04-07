@@ -153,6 +153,8 @@ public class PlaybackService extends Service {
 	/** True if mediaplayer was paused because it lost audio focus temporarily */
 	private boolean pausedBecauseOfTransientAudiofocusLoss;
 
+	private Thread chapterLoader;
+
 	private final IBinder mBinder = new LocalBinder();
 
 	public class LocalBinder extends Binder {
@@ -273,6 +275,9 @@ public class PlaybackService extends Service {
 		if (AppConfig.DEBUG)
 			Log.d(TAG, "Service is about to be destroyed");
 		isRunning = false;
+		if (chapterLoader != null) {
+			chapterLoader.interrupt();
+		}
 		disableSleepTimer();
 		unregisterReceiver(headsetDisconnected);
 		unregisterReceiver(shutdownReceiver);
@@ -337,6 +342,8 @@ public class PlaybackService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		super.onStartCommand(intent, flags, startId);
+
 		if (AppConfig.DEBUG)
 			Log.d(TAG, "OnStartCommand called");
 		int keycode = intent.getIntExtra(MediaButtonReceiver.EXTRA_KEYCODE, -1);
@@ -616,6 +623,27 @@ public class PlaybackService extends Service {
 				media.setDuration(mp.getDuration());
 			}
 			setStatus(PlayerStatus.PREPARED);
+			if (chapterLoader != null) {
+				chapterLoader.interrupt();
+			}
+			chapterLoader = new Thread() {
+				@Override
+				public void run() {
+					if (AppConfig.DEBUG)
+						Log.d(TAG, "Chapter loader started");
+					if (media != null && media.getChapters() == null) {
+						media.loadChapterMarks();
+						if (!isInterrupted() && media.getChapters() != null) {
+							sendNotificationBroadcast(NOTIFICATION_TYPE_RELOAD,
+									0);
+						}
+					}
+					if (AppConfig.DEBUG)
+						Log.d(TAG, "Chapter loader stopped");
+				}
+			};
+			chapterLoader.start();
+
 			if (startWhenPrepared) {
 				play();
 			}
@@ -730,8 +758,7 @@ public class PlaybackService extends Service {
 			prepareImmediately = startWhenPrepared = true;
 		} else {
 			if (AppConfig.DEBUG)
-				Log.d(TAG,
-						"No more episodes available to play");
+				Log.d(TAG, "No more episodes available to play");
 			media = null;
 			prepareImmediately = startWhenPrepared = false;
 			stopForeground(true);
@@ -752,7 +779,8 @@ public class PlaybackService extends Service {
 		if (media != null) {
 			resetVideoSurface();
 			refreshRemoteControlClientState();
-			sendNotificationBroadcast(NOTIFICATION_TYPE_RELOAD, notificationCode);
+			sendNotificationBroadcast(NOTIFICATION_TYPE_RELOAD,
+					notificationCode);
 		} else {
 			sendNotificationBroadcast(NOTIFICATION_TYPE_PLAYBACK_END, 0);
 			stopSelf();
@@ -949,60 +977,97 @@ public class PlaybackService extends Service {
 		sendBroadcast(intent);
 	}
 
+	/** Used by setupNotification to load notification data in another thread. */
+	private AsyncTask<Void, Void, Void> notificationSetupTask;
+
 	/** Prepares notification and starts the service in the foreground. */
 	@SuppressLint("NewApi")
 	private void setupNotification() {
-		PendingIntent pIntent = PendingIntent.getActivity(this, 0,
+		final PendingIntent pIntent = PendingIntent.getActivity(this, 0,
 				PlaybackService.getPlayerActivityIntent(this),
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
-		Bitmap icon = null;
-		if (android.os.Build.VERSION.SDK_INT >= 11) {
-			if (media != null && media.getImageFileUrl() != null) {
-				int iconSize = getResources().getDimensionPixelSize(
-						android.R.dimen.notification_large_icon_width);
-				icon = BitmapDecoder.decodeBitmap(iconSize,
-						media.getImageFileUrl());
-			}
+		if (notificationSetupTask != null) {
+			notificationSetupTask.cancel(true);
 		}
-		if (icon == null) {
-			icon = BitmapFactory.decodeResource(getResources(),
-					R.drawable.ic_stat_antenna);
+		notificationSetupTask = new AsyncTask<Void, Void, Void>() {
+			Bitmap icon = null;
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				if (AppConfig.DEBUG)
+					Log.d(TAG, "Starting background work");
+				if (android.os.Build.VERSION.SDK_INT >= 11) {
+					if (media != null && media != null) {
+						int iconSize = getResources().getDimensionPixelSize(
+								android.R.dimen.notification_large_icon_width);
+						icon = BitmapDecoder
+								.decodeBitmapFromWorkerTaskResource(iconSize,
+										media);
+					}
+
+				}
+				if (icon == null) {
+					icon = BitmapFactory.decodeResource(getResources(),
+							R.drawable.ic_stat_antenna);
+				}
+
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				if (!isCancelled() && status == PlayerStatus.PLAYING
+						&& media != null) {
+					String contentText = media.getFeedTitle();
+					String contentTitle = media.getEpisodeTitle();
+					Notification notification = null;
+					if (android.os.Build.VERSION.SDK_INT >= 16) {
+						Intent pauseButtonIntent = new Intent(
+								PlaybackService.this, PlaybackService.class);
+						pauseButtonIntent.putExtra(
+								MediaButtonReceiver.EXTRA_KEYCODE,
+								KeyEvent.KEYCODE_MEDIA_PAUSE);
+						PendingIntent pauseButtonPendingIntent = PendingIntent
+								.getService(PlaybackService.this, 0,
+										pauseButtonIntent,
+										PendingIntent.FLAG_UPDATE_CURRENT);
+						Notification.Builder notificationBuilder = new Notification.Builder(
+								PlaybackService.this)
+								.setContentTitle(contentTitle)
+								.setContentText(contentText)
+								.setOngoing(true)
+								.setContentIntent(pIntent)
+								.setLargeIcon(icon)
+								.setSmallIcon(R.drawable.ic_stat_antenna)
+								.addAction(android.R.drawable.ic_media_pause,
+										getString(R.string.pause_label),
+										pauseButtonPendingIntent);
+						notification = notificationBuilder.build();
+					} else {
+						NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
+								PlaybackService.this)
+								.setContentTitle(contentTitle)
+								.setContentText(contentText).setOngoing(true)
+								.setContentIntent(pIntent).setLargeIcon(icon)
+								.setSmallIcon(R.drawable.ic_stat_antenna);
+						notification = notificationBuilder.getNotification();
+					}
+					startForeground(NOTIFICATION_ID, notification);
+					if (AppConfig.DEBUG)
+						Log.d(TAG, "Notification set up");
+				}
+			}
+
+		};
+		if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.GINGERBREAD_MR1) {
+			notificationSetupTask
+					.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		} else {
+			notificationSetupTask.execute();
 		}
 
-		String contentText = media.getFeedTitle();
-		String contentTitle = media.getEpisodeTitle();
-		Notification notification = null;
-		if (android.os.Build.VERSION.SDK_INT >= 16) {
-			Intent pauseButtonIntent = new Intent(this, PlaybackService.class);
-			pauseButtonIntent.putExtra(MediaButtonReceiver.EXTRA_KEYCODE,
-					KeyEvent.KEYCODE_MEDIA_PAUSE);
-			PendingIntent pauseButtonPendingIntent = PendingIntent.getService(
-					this, 0, pauseButtonIntent,
-					PendingIntent.FLAG_UPDATE_CURRENT);
-			Notification.Builder notificationBuilder = new Notification.Builder(
-					this)
-					.setContentTitle(contentTitle)
-					.setContentText(contentText)
-					.setOngoing(true)
-					.setContentIntent(pIntent)
-					.setLargeIcon(icon)
-					.setSmallIcon(R.drawable.ic_stat_antenna)
-					.addAction(android.R.drawable.ic_media_pause,
-							getString(R.string.pause_label),
-							pauseButtonPendingIntent);
-			notification = notificationBuilder.build();
-		} else {
-			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
-					this).setContentTitle(contentTitle)
-					.setContentText(contentText).setOngoing(true)
-					.setContentIntent(pIntent).setLargeIcon(icon)
-					.setSmallIcon(R.drawable.ic_stat_antenna);
-			notification = notificationBuilder.getNotification();
-		}
-		startForeground(NOTIFICATION_ID, notification);
-		if (AppConfig.DEBUG)
-			Log.d(TAG, "Notification set up");
 	}
 
 	/**

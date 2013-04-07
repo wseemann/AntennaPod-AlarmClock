@@ -167,10 +167,9 @@ public class ExternalEpisodesListAdapter extends BaseExpandableListAdapter {
 			holder.lenSize.setVisibility(View.INVISIBLE);
 		}
 
-		holder.feedImage.setTag((item.getFeed().getImage() != null) ? item
-				.getFeed().getImage().getFile_url() : null);
+		holder.feedImage.setTag(item.getImageLoaderCacheKey());
 		ImageLoader.getInstance().loadThumbnailBitmap(
-				item.getFeed().getImage(),
+				item,
 				holder.feedImage,
 				(int) convertView.getResources().getDimension(
 						R.dimen.thumbnail_length));
@@ -210,7 +209,12 @@ public class ExternalEpisodesListAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		return 2;
+		// Hide 'unread items' group if empty
+		if (manager.getUnreadItemsSize(true) > 0) {
+			return 2;
+		} else {
+			return 1;
+		}
 	}
 
 	@Override

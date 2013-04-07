@@ -157,6 +157,16 @@ public class PreferenceActivity extends SherlockPreferenceActivity {
 								return true;
 							}
 						});
+		findPreference(UserPreferences.PREF_ENABLE_AUTODL)
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+					@Override
+					public boolean onPreferenceClick(Preference preference) {
+						checkItemVisibility();
+						return true;
+					}
+				});
+
 		buildAutodownloadSelectedNetworsPreference();
 		setSelectedNetworksEnabled(UserPreferences
 				.isEnableAutodownloadWifiFilter());
@@ -186,6 +196,11 @@ public class PreferenceActivity extends SherlockPreferenceActivity {
 
 		findPreference(PREF_FLATTR_AUTH).setEnabled(!hasFlattrToken);
 		findPreference(PREF_FLATTR_REVOKE).setEnabled(hasFlattrToken);
+
+		findPreference(UserPreferences.PREF_ENABLE_AUTODL_WIFI_FILTER)
+				.setEnabled(UserPreferences.isEnableAutodownload());
+		setSelectedNetworksEnabled(UserPreferences.isEnableAutodownload()
+				&& UserPreferences.isEnableAutodownloadWifiFilter());
 
 	}
 
@@ -315,5 +330,24 @@ public class PreferenceActivity extends SherlockPreferenceActivity {
 				}
 			}
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+			Preference preference) {
+		super.onPreferenceTreeClick(preferenceScreen, preference);
+		if (preference != null)
+			if (preference instanceof PreferenceScreen)
+				if (((PreferenceScreen) preference).getDialog() != null)
+					((PreferenceScreen) preference)
+							.getDialog()
+							.getWindow()
+							.getDecorView()
+							.setBackgroundDrawable(
+									this.getWindow().getDecorView()
+											.getBackground().getConstantState()
+											.newDrawable());
+		return false;
 	}
 }

@@ -1,6 +1,8 @@
 package de.danoeh.antennapod.feed;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +12,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import de.danoeh.antennapod.PodcastApp;
 import de.danoeh.antennapod.preferences.PlaybackPreferences;
+import de.danoeh.antennapod.util.ChapterUtils;
 import de.danoeh.antennapod.util.playback.Playable;
 
 /**
@@ -186,6 +189,22 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 	}
 
 	@Override
+	public void loadMetadata() throws PlayableException {
+	}
+
+	@Override
+	public void loadChapterMarks() {
+		if (getChapters() == null && !localFileAvailable()) {
+			ChapterUtils.loadChaptersFromStreamUrl(this);
+			if (getChapters() != null) {
+				FeedManager.getInstance().setFeedItem(PodcastApp.getInstance(),
+						item);
+			}
+		}
+
+	}
+
+	@Override
 	public String getEpisodeTitle() {
 		if (getItem().getTitle() != null) {
 			return getItem().getTitle();
@@ -207,15 +226,6 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 	@Override
 	public String getFeedTitle() {
 		return getItem().getFeed().getTitle();
-	}
-
-	@Override
-	public String getImageFileUrl() {
-		if (getItem().getFeed().getImage() != null) {
-			return getItem().getFeed().getImage().getFile_url();
-		} else {
-			return null;
-		}
 	}
 
 	@Override
@@ -332,4 +342,37 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 		this.streamUrl = streamUrl;
 	}
 
+	@Override
+	public InputStream openImageInputStream() {
+		InputStream out = new Playable.DefaultPlayableImageLoader(this)
+				.openImageInputStream();
+		if (out == null) {
+			if (item.getFeed().getImage() != null) {
+				return item.getFeed().getImage().openImageInputStream();
+			}
+		}
+		return out;
+	}
+
+	@Override
+	public String getImageLoaderCacheKey() {
+		String out = new Playable.DefaultPlayableImageLoader(this)
+				.getImageLoaderCacheKey();
+		if (out == null) {
+			if (item.getFeed().getImage() != null) {
+				return item.getFeed().getImage().getImageLoaderCacheKey();
+			}
+		}
+		return out;
+	}
+
+	@Override
+	public InputStream reopenImageInputStream(InputStream input) {
+		if (input instanceof FileInputStream) {
+			return item.getFeed().getImage().reopenImageInputStream(input);
+		} else {
+			return new Playable.DefaultPlayableImageLoader(this)
+					.reopenImageInputStream(input);
+		}
+	}
 }
