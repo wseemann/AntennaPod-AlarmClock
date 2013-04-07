@@ -8,8 +8,8 @@ import de.danoeh.antennapod.util.playback.Playable;
 /**
  * FeedMedia object whose media file is contained directly in the enclosure in
  * the feed, i.e. the download URL of the enclosure's resource and the stream
- * URL as well as the local media file URL and the file URL are treated
- * equally respectively.
+ * URL as well as the local media file URL and the file URL are treated equally
+ * respectively.
  */
 public class EnclosedFeedMedia extends FeedMedia implements Playable {
 	public static final int PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA = 1;
@@ -17,6 +17,7 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
 	public EnclosedFeedMedia(FeedItem i, String download_url, long size,
 			String mime_type) {
 		super(i, download_url, size, mime_type);
+		streamUrl = download_url;
 	}
 
 	public EnclosedFeedMedia(long id, FeedItem item, int duration,
@@ -67,6 +68,17 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
 	public String getStreamUrl() {
 		return download_url;
 	}
-	
-	
+
+	@Override
+	public void setStreamUrl(String streamUrl) {
+		super.setStreamUrl(streamUrl);
+		download_url = streamUrl;
+	}
+
+	@Override
+	public void setDownload_url(String download_url) {
+		super.setDownload_url(download_url);
+		streamUrl = download_url;
+	}
+
 }
