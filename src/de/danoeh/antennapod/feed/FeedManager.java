@@ -1575,7 +1575,8 @@ public class FeedManager {
 								cursor.getString(PodDBAdapter.KEY_FILE_URL_INDEX),
 								cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
 								cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
-								playbackCompletionDate));
+								playbackCompletionDate,
+								cursor.getString(PodDBAdapter.KEY_ORIGINAL_ENCLOSURE_INDEX)));
 					}
 					if (playbackCompletionDate != null) {
 						playbackHistory.add(item);

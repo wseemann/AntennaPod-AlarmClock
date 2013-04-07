@@ -64,8 +64,8 @@ public class FeedItem extends FeedComponent implements
 		if (other.media != null) {
 			if (media == null) {
 				media = other.media;
-			} else if (media.compareWithOther(other)) {
-				media.updateFromOther(other);
+			} else if (media.compareWithOther(other.media)) {
+				media.updateFromOther(other.media);
 			}
 		}
 		if (other.paymentLink != null) {

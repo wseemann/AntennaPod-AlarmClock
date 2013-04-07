@@ -8,6 +8,7 @@ import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.syndication.namespace.NSContent;
+import de.danoeh.antennapod.syndication.namespace.NSFeedburner;
 import de.danoeh.antennapod.syndication.namespace.NSITunes;
 import de.danoeh.antennapod.syndication.namespace.NSMedia;
 import de.danoeh.antennapod.syndication.namespace.NSRSS20;
@@ -107,6 +108,11 @@ public class SyndHandler extends DefaultHandler {
 				state.namespaces.put(uri, new NSMedia());
 				if (AppConfig.DEBUG)
 					Log.d(TAG, "Recognized media namespace");
+			} else if (uri.equals(NSFeedburner.NSTAG)
+					|| uri.equals(NSFeedburner.NSURI)) {
+				state.namespaces.put(uri, new NSFeedburner());
+				if (AppConfig.DEBUG)
+					Log.d(TAG, "Recognized feeburner namespace");
 			}
 		}
 	}
