@@ -8,7 +8,6 @@ import java.util.Observable;
 import java.util.Observer;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import android.util.Log;
 
@@ -16,6 +15,7 @@ import com.turn.ttorrent.client.Client;
 import com.turn.ttorrent.client.SharedTorrent;
 
 import de.danoeh.antennapod.AppConfig;
+import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.asynctask.DownloadStatus;
 import de.danoeh.antennapod.feed.BitTorrentFeedMedia;
 import de.danoeh.antennapod.util.DownloadError;
@@ -87,7 +87,7 @@ public class BitTorrentDownloader extends Downloader implements Observer {
 					Log.d(TAG, "starting torrent download");
 				status.setSize(sharedTorrent.getSize());
 				client.download();
-
+				status.setStatusMsg(R.string.download_running);
 				while (client.getState() != Client.ClientState.DONE
 						&& client.getState() != Client.ClientState.ERROR
 						&& !client.getTorrent().isComplete()) {
@@ -120,7 +120,7 @@ public class BitTorrentDownloader extends Downloader implements Observer {
 				}
 				client.stop();
 			} else {
-				onFail(DownloadError.ERROR_UNSUPPORTED_TYPE, "");
+				onFail(DownloadError.ERROR_BITTORRENT_DOWNLOAD_ERROR, null);
 			}
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -131,29 +131,6 @@ public class BitTorrentDownloader extends Downloader implements Observer {
 			onFail(DownloadError.ERROR_IO_ERROR, e.getMessage());
 			return;
 		}
-	}
-
-	private void onSuccess() {
-		if (AppConfig.DEBUG)
-			Log.d(TAG, "Download was successful");
-		status.setSuccessful(true);
-		status.setDone(true);
-	}
-
-	private void onCancelled() {
-		if (AppConfig.DEBUG)
-			Log.d(TAG, "Download was cancelled");
-		status.setReason(DownloadError.ERROR_DOWNLOAD_CANCELLED);
-		status.setDone(true);
-		status.setSuccessful(false);
-		status.setCancelled(true);
-	}
-
-	private void onFail(int reason, String reasonDetailed) {
-		status.setReason(reason);
-		status.setReasonDetailed(reasonDetailed);
-		status.setDone(true);
-		status.setSuccessful(false);
 	}
 
 	@Override

@@ -17,6 +17,7 @@ public class DownloadError {
 	public static final int ERROR_NOT_ENOUGH_SPACE = 10;
 	public static final int ERROR_UNKNOWN_HOST = 11;
 	public static final int ERROR_REQUEST_ERROR = 12;
+	public static final int ERROR_BITTORRENT_DOWNLOAD_ERROR = 13;
 	
 	/** Get a human-readable string for a specific error code. */
 	public static String getErrorString(Context context, int code) {
@@ -48,6 +49,9 @@ public class DownloadError {
 			break;
 		case ERROR_REQUEST_ERROR:
 			resId = R.string.download_error_request_error;
+			break;
+		case ERROR_BITTORRENT_DOWNLOAD_ERROR:
+			resId = R.string.download_error_bittorrent_error;
 			break;
 		default:
 			resId = R.string.download_error_error_unknown;

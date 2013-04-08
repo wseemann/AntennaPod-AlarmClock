@@ -155,36 +155,8 @@ public class HttpDownloader extends Downloader {
 		}
 	}
 
-	private void onSuccess() {
-		if (AppConfig.DEBUG)
-			Log.d(TAG, "Download was successful");
-		status.setSuccessful(true);
-		status.setDone(true);
-	}
-
-	private void onFail(int reason, String reasonDetailed) {
-		if (AppConfig.DEBUG) {
-			Log.d(TAG, "Download failed");
-		}
-		status.setReason(reason);
-		status.setReasonDetailed(reasonDetailed);
-		status.setDone(true);
-		status.setSuccessful(false);
-		cleanup();
-	}
-
-	private void onCancelled() {
-		if (AppConfig.DEBUG)
-			Log.d(TAG, "Download was cancelled");
-		status.setReason(DownloadError.ERROR_DOWNLOAD_CANCELLED);
-		status.setDone(true);
-		status.setSuccessful(false);
-		status.setCancelled(true);
-		cleanup();
-	}
-
-	/** Deletes unfinished downloads. */
-	private void cleanup() {
+	@Override
+	protected void cleanup() {
 		if (status != null && status.getFeedFile() != null
 				&& status.getFeedFile().getFile_url() != null) {
 			File dest = new File(status.getFeedFile().getFile_url());
