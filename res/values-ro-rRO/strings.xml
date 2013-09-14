@@ -32,7 +32,7 @@
   <string name="external_storage_error_msg">Nu exista stocare externă. Asigurați-vă că stocarea externă este conectată pentru ca aplicația să funcționeze corespunzător.</string>
   <string name="chapters_label">Capitole</string>
   <string name="shownotes_label">Notițe</string>
-  <string name="last_update_prefix">Ultima actualizare:\u0020</string>
+  <string name="most_recent_prefix">Cel mai recent episod:\u0020</string>
   <string name="episodes_suffix">\u0020episoade</string>
   <string name="published_prefix">Publicat:\u0020</string>
   <string name="length_prefix">Durată:\u0020</string>
@@ -40,6 +40,7 @@
   <string name="processing_label">Procesează</string>
   <string name="loading_label">Încărcare...</string>
   <string name="image_of_prefix">Imagine a:\u0020</string>
+  <string name="close_label">închide</string>
   <!--'Add Feed' Activity labels-->
   <string name="feedurl_label">Adresă feed</string>
   <string name="txtvfeedurl_label">Scrieți adresa feedului aici:</string>
@@ -112,6 +113,8 @@
   <!--Queue operations-->
   <string name="clear_queue_label">Golește coada</string>
   <string name="organize_queue_label">Organizează coada</string>
+  <string name="undo">Refă</string>
+  <string name="removed_from_queue">Element înlăturat</string>
   <!--Flattr-->
   <string name="flattr_auth_label">Flattr sign-in</string>
   <string name="flattr_auth_explanation">Apăsați butonul de mai jos pentru a începe procesul de autentificare. Veți fi îndreptat spre pagina de logare flattr în browser și veți fi rugat să acordați permisiuni AntennaPod sa flattr. După ce veți acorda permisiunile veți fi readuși la acest ecran automat.</string>
@@ -127,6 +130,11 @@
   <string name="access_revoked_info">Ați revocat cu succes accesul AntennaPod la contul vostru. Pentru a completa acest proces trebuie să ștergeți aplicația din lista de aplicații aprobate din setările contului de pe site-ul flattr.</string>
   <string name="flattr_click_success">Ați flattr cu succes!</string>
   <string name="flattring_label">Flattring</string>
+  <!--Variable Speed-->
+  <string name="download_plugin_label">Descarcă plugin</string>
+  <string name="no_playback_plugin_title">Plugin neinstalat</string>
+  <string name="no_playback_plugin_msg">Pentru ca viteza variabilă de ascultare să funcționeze este necesară o librărie externă.\n\nApăsați \'Descarcă Plugin\' pentru a descărca un plugin gratuit din Play Store\n\nOrice probleme găsite folosind acest plugin nu sunt responsabilitatea AntennaPod și trebuie raportate autorului pluginului.</string>
+  <string name="set_playback_speed_label">Viteze de ascultare</string>
   <!--Empty list labels-->
   <string name="no_items_label">Nu sunt elemente în listă.</string>
   <string name="no_feeds_label">Nu v-ați abonat la nici un feed momentan.</string>
@@ -164,6 +172,14 @@
   <string name="pref_autodl_wifi_filter_title">Pornește filtru Wi-Fi</string>
   <string name="pref_autodl_wifi_filter_sum">Pornește descărcarea automată doar pentru rețele Wi-Fi selectate.</string>
   <string name="pref_episode_cache_title">Cache de episoade</string>
+  <string name="pref_theme_title_light">Deschis</string>
+  <string name="pref_theme_title_dark">Întunecat</string>
+  <string name="pref_episode_cache_unlimited">Nelimitat</string>
+  <string name="pref_update_interval_hours_plural">ore</string>
+  <string name="pref_update_interval_hours_singular">oră</string>
+  <string name="pref_update_interval_hours_manual">Manual</string>
+  <string name="pref_playback_speed_title">Viteze de ascutare</string>
+  <string name="pref_playback_speed_sum">Modifică vitezele disponibile pentru viteza de ascultare.</string>
   <!--Search-->
   <string name="search_hint">Caută feeduri sau episoade</string>
   <string name="found_in_shownotes_label">Găsit în notițe</string>

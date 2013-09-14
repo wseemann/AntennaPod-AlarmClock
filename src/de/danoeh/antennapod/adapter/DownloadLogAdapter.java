@@ -1,7 +1,5 @@
 package de.danoeh.antennapod.adapter;
 
-import java.text.DateFormat;
-
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -10,22 +8,22 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import de.danoeh.antennapod.R;
-import de.danoeh.antennapod.asynctask.DownloadStatus;
-import de.danoeh.antennapod.feed.EnclosedFeedMedia;
 import de.danoeh.antennapod.feed.Feed;
 import de.danoeh.antennapod.feed.FeedImage;
-import de.danoeh.antennapod.feed.FeedManager;
 import de.danoeh.antennapod.feed.FeedMedia;
+import de.danoeh.antennapod.service.download.DownloadStatus;
 import de.danoeh.antennapod.util.DownloadError;
 
 /** Displays a list of DownloadStatus entries. */
 public class DownloadLogAdapter extends BaseAdapter {
 
 	private Context context;
-	private FeedManager manager = FeedManager.getInstance();
 
-	public DownloadLogAdapter(Context context) {
+    private ItemAccess itemAccess;
+
+	public DownloadLogAdapter(Context context, ItemAccess itemAccess) {
 		super();
+        this.itemAccess = itemAccess;
 		this.context = context;
 	}
 
@@ -61,9 +59,9 @@ public class DownloadLogAdapter extends BaseAdapter {
 		} else {
 			holder.title.setText(R.string.download_log_title_unknown);
 		}
-		holder.date.setText(DateUtils.formatSameDayTime(status
-				.getCompletionDate().getTime(), System.currentTimeMillis(),
-				DateFormat.SHORT, DateFormat.SHORT));
+		holder.date.setText(DateUtils.getRelativeTimeSpanString(
+				status.getCompletionDate().getTime(),
+				System.currentTimeMillis(), 0, 0));
 		if (status.isSuccessful()) {
 			holder.successful.setTextColor(convertView.getResources().getColor(
 					R.color.download_success_green));
@@ -73,8 +71,7 @@ public class DownloadLogAdapter extends BaseAdapter {
 			holder.successful.setTextColor(convertView.getResources().getColor(
 					R.color.download_failed_red));
 			holder.successful.setText(R.string.download_failed);
-			String reasonText = DownloadError.getErrorString(context,
-					status.getReason());
+			String reasonText = status.getReason().getErrorString(context);
 			if (status.getReasonDetailed() != null) {
 				reasonText += ": " + status.getReasonDetailed();
 			}
@@ -95,17 +92,22 @@ public class DownloadLogAdapter extends BaseAdapter {
 
 	@Override
 	public int getCount() {
-		return manager.getDownloadLogSize();
+        return itemAccess.getCount();
 	}
 
 	@Override
 	public DownloadStatus getItem(int position) {
-		return manager.getDownloadStatusFromLogAtIndex(position);
+        return itemAccess.getItem(position);
 	}
 
 	@Override
 	public long getItemId(int position) {
 		return position;
 	}
+
+    public static interface ItemAccess {
+        public int getCount();
+        public DownloadStatus getItem(int position);
+    }
 
 }

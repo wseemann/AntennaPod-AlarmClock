@@ -46,6 +46,12 @@ public class NSAtom extends Namespace {
 	private static final String LINK_REL_PAYMENT = "payment";
 	private static final String LINK_REL_RELATED = "related";
 	private static final String LINK_REL_SELF = "self";
+	// type-values
+	private static final String LINK_TYPE_ATOM = "application/atom+xml";
+	private static final String LINK_TYPE_HTML = "text/html";
+	private static final String LINK_TYPE_XHTML = "application/xml+xhtml";
+
+	private static final String LINK_TYPE_RSS = "application/rss+xml";
 
 	/** Regexp to test whether an Element is a Text Element. */
 	private static final String isText = TITLE + "|" + CONTENT + "|" + "|"
@@ -101,7 +107,16 @@ public class NSAtom extends Namespace {
 				}
 			} else if (parent.getName().matches(isFeed)) {
 				if (rel == null || rel.equals(LINK_REL_ALTERNATE)) {
-					state.getFeed().setLink(href);
+					String type = attributes.getValue(LINK_TYPE);
+					/*
+					 * Use as link if a) no type-attribute is given and
+					 * feed-object has no link yet b) type of link is
+					 * LINK_TYPE_HTML or LINK_TYPE_XHTML
+					 */
+					if ((type == null && state.getFeed().getLink() == null)
+							|| (type != null && (type.equals(LINK_TYPE_HTML) || type.equals(LINK_TYPE_XHTML)))) {
+						state.getFeed().setLink(href);
+					}
 				} else if (rel.equals(LINK_REL_PAYMENT)) {
 					state.getFeed().setPaymentLink(href);
 				}
@@ -122,7 +137,7 @@ public class NSAtom extends Namespace {
 			if (state.getContentBuf() != null) {
 				content = state.getContentBuf().toString();
 			} else {
-				content = new String();
+				content = "";
 			}
 			SyndElement topElement = state.getTagstack().peek();
 			String top = topElement.getName();

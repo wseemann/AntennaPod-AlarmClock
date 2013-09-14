@@ -89,6 +89,15 @@ public class NSRSS20 extends Namespace {
 	@Override
 	public void handleElementEnd(String localName, HandlerState state) {
 		if (localName.equals(ITEM)) {
+			if (state.getCurrentItem() != null) {
+				// the title tag is optional in RSS 2.0. The description is used
+				// as a
+				// title if the item has no title-tag.
+				if (state.getCurrentItem().getTitle() == null) {
+					state.getCurrentItem().setTitle(
+							state.getCurrentItem().getDescription());
+				}
+			}
 			state.setCurrentItem(null);
 		} else if (state.getTagstack().size() >= 2
 				&& state.getContentBuf() != null) {
