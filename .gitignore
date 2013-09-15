@@ -35,10 +35,17 @@ out
 changelog
 description
 
+#JNI files
+jni/boost
+jni/libiconv
+
 # other
 *.odg#
 proguard
-libs
 *.DS_Store
+
+#libraries
+libs/*.jar
+libs/*.aar
 src/de/danoeh/antennapod/util/flattr/FlattrConfig.java
 gradle.properties
