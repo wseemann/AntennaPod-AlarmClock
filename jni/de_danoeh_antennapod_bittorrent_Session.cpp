@@ -13,6 +13,7 @@
 #include "libtorrent/torrent_handle.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/alert.hpp"
+#include "libtorrent/fingerprint.hpp"
 #include "boost/intrusive_ptr.hpp"
 
 using namespace libtorrent;
@@ -32,14 +33,22 @@ static torrent_handle *store_torrent_handle(torrent_handle *handle)
     return res;
 }
 
-    JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session
-(JNIEnv *env, jobject obj)
+JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session__
+  (JNIEnv *env, jobject obj)
 {
     session *s = new session();
-    s->set_alert_mask(alert::all_categories);
     return (jlong) s;
 }
 
+JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session__Ljava_lang_String_2IIII
+(JNIEnv *env, jobject obj, jstring id, jint major, jint minor, jint revision, jint tag) {
+    
+    const char *id_str = env->GetStringUTFChars(id, 0);
+    fingerprint f(id_str, major, minor, revision, tag);
+    session *s = new session(f);
+    env->ReleaseStringUTFChars(id, id_str);
+    return (jlong) s;
+}
 
     JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1listen_1on
 (JNIEnv *env, jobject obj, jint start, jint end)
@@ -95,11 +104,15 @@ static torrent_handle *store_torrent_handle(torrent_handle *handle)
 }
 
     JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1remove_1torrent
-(JNIEnv *env, jobject obj, jlong handle_addr)
+(JNIEnv *env, jobject obj, jlong handle_addr, jboolean delete_files)
 {
     session& s = get_session_handle(env, obj); 
     torrent_handle& th = *(reinterpret_cast<torrent_handle *>(handle_addr));
-    s.remove_torrent(th);
+    if (delete_files) {
+        s.remove_torrent(th, session::delete_files);
+    } else {
+        s.remove_torrent(th);
+    }
 }
 
     JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1shutdown
@@ -140,3 +153,10 @@ JNIEXPORT jobject JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1wait_1
         return NULL;
     }
 }
+
+JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1set_1alert_1mask
+  (JNIEnv *env, jobject obj, jint mask) {
+  
+      session& s = get_session_handle(env, obj);
+      s.set_alert_mask((int) mask);
+  }

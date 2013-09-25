@@ -60,6 +60,26 @@ public class Alert {
                 + "; message: " + message + "]";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Alert alert = (Alert) o;
+
+        if (type != alert.type) return false;
+        if (message != null ? !message.equals(alert.message) : alert.message != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type;
+        result = 31 * result + (message != null ? message.hashCode() : 0);
+        return result;
+    }
+
     public int getType() {
         return type;
     }

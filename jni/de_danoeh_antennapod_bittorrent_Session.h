@@ -7,6 +7,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef de_danoeh_antennapod_bittorrent_Session_DEFAULT_PORT_RANGE_START
+#define de_danoeh_antennapod_bittorrent_Session_DEFAULT_PORT_RANGE_START 6881L
+#undef de_danoeh_antennapod_bittorrent_Session_DEFAULT_PORT_RANGE_END
+#define de_danoeh_antennapod_bittorrent_Session_DEFAULT_PORT_RANGE_END 6889L
 #undef de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_SEED_MODE
 #define de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_SEED_MODE 1L
 #undef de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_OVERRIDE_RESUME_DATA
@@ -27,13 +31,47 @@ extern "C" {
 #define de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_MERGE_RESUME_TRACKERS 256L
 #undef de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_UPDATE_SUBSCRIBE
 #define de_danoeh_antennapod_bittorrent_Session_ADD_TORRENT_UPDATE_SUBSCRIBE 512L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_ERROR
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_ERROR 1L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PEER
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PEER 2L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PORT_MAPPING
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PORT_MAPPING 4L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STORAGE
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STORAGE 8L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_TRACKER
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_TRACKER 16L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_DEBUG
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_DEBUG 32L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STATUS
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STATUS 64L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PROGRESS
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PROGRESS 128L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_IP_BLOCK
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_IP_BLOCK 256L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PERFORMANCE
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_PERFORMANCE 512L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STATS
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_STATS 2048L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_DHT
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_DHT 1024L
+#undef de_danoeh_antennapod_bittorrent_Session_ALERTMASK_ALL_CATEGORIES
+#define de_danoeh_antennapod_bittorrent_Session_ALERTMASK_ALL_CATEGORIES 2147483647L
 /*
  * Class:     de_danoeh_antennapod_bittorrent_Session
  * Method:    n_session
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session
+JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session__
   (JNIEnv *, jobject);
+
+/*
+ * Class:     de_danoeh_antennapod_bittorrent_Session
+ * Method:    n_session
+ * Signature: (Ljava/lang/String;IIII)J
+ */
+JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1session__Ljava_lang_String_2IIII
+  (JNIEnv *, jobject, jstring, jint, jint, jint, jint);
 
 /*
  * Class:     de_danoeh_antennapod_bittorrent_Session
@@ -62,18 +100,10 @@ JNIEXPORT jlong JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1add_1tor
 /*
  * Class:     de_danoeh_antennapod_bittorrent_Session
  * Method:    n_remove_torrent
- * Signature: (J)V
+ * Signature: (JZ)V
  */
 JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1remove_1torrent
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     de_danoeh_antennapod_bittorrent_Session
- * Method:    n_get_torrents
- * Signature: ()[I
- */
-JNIEXPORT jintArray JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1get_1torrents
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong, jboolean);
 
 /*
  * Class:     de_danoeh_antennapod_bittorrent_Session
@@ -106,6 +136,14 @@ JNIEXPORT jobject JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1pop_1a
  */
 JNIEXPORT jobject JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1wait_1for_1alert
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     de_danoeh_antennapod_bittorrent_Session
+ * Method:    n_set_alert_mask
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_de_danoeh_antennapod_bittorrent_Session_n_1set_1alert_1mask
+  (JNIEnv *, jobject, jint);
 
 #ifdef __cplusplus
 }
