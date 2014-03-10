@@ -1,19 +1,24 @@
 package de.danoeh.antennapod.feed;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import de.danoeh.antennapod.preferences.UserPreferences;
+import de.danoeh.antennapod.storage.DBWriter;
 import de.danoeh.antennapod.util.EpisodeFilter;
+import de.danoeh.antennapod.util.flattr.FlattrStatus;
+import de.danoeh.antennapod.util.flattr.FlattrThing;
 
 /**
  * Data Object for a whole feed
  *
  * @author daniel
  */
-public class Feed extends FeedFile {
+public class Feed extends FeedFile implements FlattrThing {
     public static final int FEEDFILETYPE_FEED = 0;
     public static final String TYPE_RSS2 = "rss";
     public static final String TYPE_RSS091 = "rss";
@@ -40,6 +45,7 @@ public class Feed extends FeedFile {
      * Date of last refresh.
      */
     private Date lastUpdate;
+    private FlattrStatus flattrStatus;
     private String paymentLink;
     /**
      * Feed type, for example RSS 2 or Atom
@@ -47,11 +53,16 @@ public class Feed extends FeedFile {
     private String type;
 
     /**
+     * Feed preferences
+     */
+    private FeedPreferences preferences;
+
+    /**
      * This constructor is used for restoring a feed from the database.
      */
     public Feed(long id, Date lastUpdate, String title, String link, String description, String paymentLink,
                 String author, String language, String type, String feedIdentifier, FeedImage image, String fileUrl,
-                String downloadUrl, boolean downloaded) {
+                String downloadUrl, boolean downloaded, FlattrStatus status) {
         super(fileUrl, downloadUrl, downloaded);
         this.id = id;
         this.title = title;
@@ -68,8 +79,19 @@ public class Feed extends FeedFile {
         this.type = type;
         this.feedIdentifier = feedIdentifier;
         this.image = image;
+        this.flattrStatus = status;
 
         items = new ArrayList<FeedItem>();
+    }
+
+    /**
+     * This constructor is used for test purposes and uses a default flattr status object.
+     */
+    public Feed(long id, Date lastUpdate, String title, String link, String description, String paymentLink,
+                String author, String language, String type, String feedIdentifier, FeedImage image, String fileUrl,
+                String downloadUrl, boolean downloaded) {
+        this(id, lastUpdate, title, link, description, paymentLink, author, language, type, feedIdentifier, image,
+                fileUrl, downloadUrl, downloaded, new FlattrStatus());
     }
 
     /**
@@ -79,6 +101,7 @@ public class Feed extends FeedFile {
         super();
         items = new ArrayList<FeedItem>();
         lastUpdate = new Date();
+        this.flattrStatus = new FlattrStatus();
     }
 
     /**
@@ -88,6 +111,7 @@ public class Feed extends FeedFile {
     public Feed(String url, Date lastUpdate) {
         super(null, url, false);
         this.lastUpdate = (lastUpdate != null) ? (Date) lastUpdate.clone() : null;
+        this.flattrStatus = new FlattrStatus();
     }
 
     /**
@@ -97,6 +121,7 @@ public class Feed extends FeedFile {
     public Feed(String url, Date lastUpdate, String title) {
         this(url, lastUpdate);
         this.title = title;
+        this.flattrStatus = new FlattrStatus();
     }
 
     /**
@@ -230,6 +255,9 @@ public class Feed extends FeedFile {
         if (other.paymentLink != null) {
             paymentLink = other.paymentLink;
         }
+        if (other.flattrStatus != null) {
+            flattrStatus = other.flattrStatus;
+        }
     }
 
     public boolean compareWithOther(Feed other) {
@@ -334,6 +362,14 @@ public class Feed extends FeedFile {
         this.feedIdentifier = feedIdentifier;
     }
 
+	public void setFlattrStatus(FlattrStatus status) {
+		this.flattrStatus = status;
+	}
+
+	public FlattrStatus getFlattrStatus() {
+		return flattrStatus;
+	}
+
     public String getPaymentLink() {
         return paymentLink;
     }
@@ -366,4 +402,15 @@ public class Feed extends FeedFile {
         this.type = type;
     }
 
+    public void setPreferences(FeedPreferences preferences) {
+        this.preferences = preferences;
+    }
+
+    public FeedPreferences getPreferences() {
+        return preferences;
+    }
+
+    public void savePreferences(Context context) {
+        DBWriter.setFeedPreferences(context, preferences);
+    }
 }

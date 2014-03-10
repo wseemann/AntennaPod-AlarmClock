@@ -5,7 +5,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Window;
 import android.widget.TextView;
-
 import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.dialog.DownloadRequestErrorDialogCreator;
@@ -40,6 +38,8 @@ public class ItemviewActivity extends ActionBarActivity {
     private static final int EVENTS = EventDistributor.DOWNLOAD_HANDLED | EventDistributor.DOWNLOAD_QUEUED;
 
     private FeedItem item;
+    private boolean guiInitialized;
+    private AsyncTask<?, ?, ?> currentLoadTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +50,8 @@ public class ItemviewActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         EventDistributor.getInstance().register(contentUpdate);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+        guiInitialized = false;
 
         long itemId = getIntent().getLongExtra(
                 ItemlistFragment.EXTRA_SELECTED_FEEDITEM, -1);
@@ -64,23 +66,34 @@ public class ItemviewActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         StorageUtils.checkStorageAvailability(this);
-
     }
 
     @Override
     public void onStop() {
         super.onStop();
         EventDistributor.getInstance().unregister(contentUpdate);
+        if (currentLoadTask != null) {
+            currentLoadTask.cancel(true);
+        }
         if (AppConfig.DEBUG)
             Log.d(TAG, "Stopping Activity");
     }
 
-    private void loadData(long itemId) {
+    private synchronized void loadData(long itemId) {
+        if (currentLoadTask != null) {
+            currentLoadTask.cancel(true);
+        }
         AsyncTask<Long, Void, FeedItem> loadTask = new AsyncTask<Long, Void, FeedItem>() {
 
             @Override
             protected FeedItem doInBackground(Long... longs) {
                 return DBReader.getFeedItem(ItemviewActivity.this, longs[0]);
+            }
+
+            @Override
+            protected void onCancelled(FeedItem feedItem) {
+                super.onCancelled(feedItem);
+                if (AppConfig.DEBUG) Log.d(TAG, "loadTask was cancelled");
             }
 
             @Override
@@ -100,11 +113,21 @@ public class ItemviewActivity extends ActionBarActivity {
             }
         };
         loadTask.execute(itemId);
+        currentLoadTask = loadTask;
     }
 
-    private void populateUI() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setContentView(R.layout.feeditemview);
+    private synchronized void populateUI() {
+        if (!guiInitialized) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            setContentView(R.layout.feeditemview);
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager
+                    .beginTransaction();
+            ItemDescriptionFragment fragment = ItemDescriptionFragment
+                    .newInstance(item, false);
+            fragmentTransaction.replace(R.id.description_fragment, fragment);
+            fragmentTransaction.commit();
+        }
         TextView txtvTitle = (TextView) findViewById(R.id.txtvItemname);
         TextView txtvPublished = (TextView) findViewById(R.id.txtvPublished);
         setTitle(item.getFeed().getTitle());
@@ -114,33 +137,24 @@ public class ItemviewActivity extends ActionBarActivity {
                 DateFormat.SHORT));
         txtvTitle.setText(item.getTitle());
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager
-                .beginTransaction();
-        ItemDescriptionFragment fragment = ItemDescriptionFragment
-                .newInstance(item, false);
-        fragmentTransaction.replace(R.id.description_fragment, fragment);
-        fragmentTransaction.commit();
+        guiInitialized = true;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
         if (item != null) {
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.feeditem, menu);
-            // MenuItem visibility has to be set programmatically here; TODO remove this workaround
-            MenuItemCompat.setShowAsAction(menu.findItem(R.id.download_item), MenuItemCompat.SHOW_AS_ACTION_IF_ROOM | MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            MenuItemCompat.setShowAsAction(menu.findItem(R.id.stream_item), MenuItemCompat.SHOW_AS_ACTION_IF_ROOM | MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            MenuItemCompat.setShowAsAction(menu.findItem(R.id.play_item), MenuItemCompat.SHOW_AS_ACTION_IF_ROOM | MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            MenuItemCompat.setShowAsAction(menu.findItem(R.id.cancel_download_item), MenuItemCompat.SHOW_AS_ACTION_IF_ROOM | MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            return true;
-        } else {
-            return false;
         }
+        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
+        if (item == null) {
+            return false;
+        }
         try {
             if (!FeedItemMenuHandler.onMenuItemClicked(this,
                     menuItem.getItemId(), item)) {
@@ -161,7 +175,8 @@ public class ItemviewActivity extends ActionBarActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(final Menu menu) {
-        return FeedItemMenuHandler.onPrepareMenu(
+        super.onPrepareOptionsMenu(menu);
+        FeedItemMenuHandler.onPrepareMenu(
                 new FeedItemMenuHandler.MenuInterface() {
 
                     @Override
@@ -169,6 +184,7 @@ public class ItemviewActivity extends ActionBarActivity {
                         menu.findItem(id).setVisible(visible);
                     }
                 }, item, true, QueueAccess.NotInQueueAccess());
+        return true;
     }
 
     private EventDistributor.EventListener contentUpdate = new EventDistributor.EventListener() {

@@ -19,10 +19,10 @@ public class BitTorrentFeedMedia extends FeedMedia {
     public BitTorrentFeedMedia(long id, FeedItem item, int duration,
                                int position, long size, String mime_type, String file_url,
                                String download_url, boolean downloaded,
-                               Date playbackCompletionDate, String localFileUrl, String streamUrl) {
+                               Date playbackCompletionDate, String localFileUrl, String streamUrl, int played_duration) {
         super(id, item, duration, position, size, mime_type, file_url,
                 download_url, downloaded, playbackCompletionDate, localFileUrl,
-                streamUrl);
+                streamUrl, played_duration);
         mediaType = retrieveMediaType();
     }
 

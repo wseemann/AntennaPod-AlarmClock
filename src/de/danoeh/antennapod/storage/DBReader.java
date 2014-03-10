@@ -1,28 +1,30 @@
 package de.danoeh.antennapod.storage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.feed.*;
-import de.danoeh.antennapod.service.download.*;
+import de.danoeh.antennapod.service.download.DownloadStatus;
 import de.danoeh.antennapod.util.DownloadError;
 import de.danoeh.antennapod.util.comparator.DownloadStatusComparator;
 import de.danoeh.antennapod.util.comparator.FeedItemPubdateComparator;
+import de.danoeh.antennapod.util.comparator.PlaybackCompletionDateComparator;
+import de.danoeh.antennapod.util.flattr.FlattrStatus;
+import de.danoeh.antennapod.util.flattr.FlattrThing;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Provides methods for reading data from the AntennaPod database.
  * In general, all database calls in DBReader-methods are executed on the caller's thread.
  * This means that the caller should make sure that DBReader-methods are not executed on the GUI-thread.
  * This class will use the {@link de.danoeh.antennapod.feed.EventDistributor} to notify listeners about changes in the database.
-
  */
 public final class DBReader {
     private static final String TAG = "DBReader";
@@ -71,9 +73,10 @@ public final class DBReader {
 
     /**
      * Returns a list with the download URLs of all feeds.
+     *
      * @param context A context that is used for opening the database connection.
      * @return A list of Strings with the download URLs of all feeds.
-     * */
+     */
     public static List<String> getFeedListDownloadUrls(final Context context) {
         PodDBAdapter adapter = new PodDBAdapter(context);
         List<String> result = new ArrayList<String>();
@@ -100,7 +103,7 @@ public final class DBReader {
      * of the returned list does NOT have its list of FeedItems yet. The FeedItem-list
      * can be loaded separately with {@link #getFeedItemList(android.content.Context, de.danoeh.antennapod.feed.Feed)}.
      */
-    static List<Feed> getExpiredFeedsList(final Context context, final long expirationTime) {
+    public static List<Feed> getExpiredFeedsList(final Context context, final long expirationTime) {
         if (AppConfig.DEBUG)
             Log.d(TAG, String.format("getExpiredFeedsList(%d)", expirationTime));
 
@@ -210,6 +213,8 @@ public final class DBReader {
                         .getInt(PodDBAdapter.IDX_FI_SMALL_READ) > 0));
                 item.setItemIdentifier(itemlistCursor
                         .getString(PodDBAdapter.IDX_FI_SMALL_ITEM_IDENTIFIER));
+                item.setFlattrStatus(new FlattrStatus(itemlistCursor
+                        .getLong(PodDBAdapter.IDX_FI_SMALL_FLATTR_STATUS)));
 
                 // extract chapters
                 boolean hasSimpleChapters = itemlistCursor
@@ -304,7 +309,8 @@ public final class DBReader {
                     cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
                     playbackCompletionDate,
                     cursor.getString(PodDBAdapter.KEY_LOCAL_MEDIA_URL_INDEX),
-                    cursor.getString(PodDBAdapter.KEY_STREAM_URL_INDEX));
+                    cursor.getString(PodDBAdapter.KEY_STREAM_URL_INDEX),
+                    cursor.getInt(PodDBAdapter.KEY_PLAYED_DURATION_INDEX));
         } else {
             return new EnclosedFeedMedia(
                     mediaId,
@@ -317,40 +323,47 @@ public final class DBReader {
                     cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
                     cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0,
                     playbackCompletionDate,
-                    cursor.getString(PodDBAdapter.KEY_ORIGINAL_ENCLOSURE_INDEX));
+                    cursor.getString(PodDBAdapter.KEY_ORIGINAL_ENCLOSURE_INDEX),
+                    cursor.getInt(PodDBAdapter.KEY_PLAYED_DURATION_INDEX));
         }
     }
 
     private static Feed extractFeedFromCursorRow(PodDBAdapter adapter,
                                                  Cursor cursor) {
         Date lastUpdate = new Date(
-                cursor.getLong(PodDBAdapter.KEY_LAST_UPDATE_INDEX));
+                cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_LASTUPDATE));
 
         final FeedImage image;
-        long imageIndex = cursor.getLong(PodDBAdapter.KEY_IMAGE_INDEX);
+        long imageIndex = cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_IMAGE);
         if (imageIndex != 0) {
             image = getFeedImage(adapter, imageIndex);
         } else {
             image = null;
         }
-        Feed feed = new Feed(cursor.getLong(PodDBAdapter.KEY_ID_INDEX),
+        Feed feed = new Feed(cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_ID),
                 lastUpdate,
-                cursor.getString(PodDBAdapter.KEY_TITLE_INDEX),
-                cursor.getString(PodDBAdapter.KEY_LINK_INDEX),
-                cursor.getString(PodDBAdapter.KEY_DESCRIPTION_INDEX),
-                cursor.getString(PodDBAdapter.KEY_PAYMENT_LINK_INDEX),
-                cursor.getString(PodDBAdapter.KEY_AUTHOR_INDEX),
-                cursor.getString(PodDBAdapter.KEY_LANGUAGE_INDEX),
-                cursor.getString(PodDBAdapter.KEY_TYPE_INDEX),
-                cursor.getString(PodDBAdapter.KEY_FEED_IDENTIFIER_INDEX),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_TITLE),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_LINK),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_DESCRIPTION),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_PAYMENT_LINK),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_AUTHOR),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_LANGUAGE),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_TYPE),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_FEED_IDENTIFIER),
                 image,
-                cursor.getString(PodDBAdapter.KEY_FILE_URL_INDEX),
-                cursor.getString(PodDBAdapter.KEY_DOWNLOAD_URL_INDEX),
-                cursor.getInt(PodDBAdapter.KEY_DOWNLOADED_INDEX) > 0);
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_FILE_URL),
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_DOWNLOAD_URL),
+                cursor.getInt(PodDBAdapter.IDX_FEED_SEL_STD_DOWNLOADED) > 0,
+                new FlattrStatus(cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_FLATTR_STATUS)));
 
-        if (image  != null) {
+        if (image != null) {
             image.setFeed(feed);
         }
+
+        FeedPreferences preferences = new FeedPreferences(cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_ID),
+                cursor.getInt(PodDBAdapter.IDX_FEED_SEL_PREFERENCES_AUTO_DOWNLOAD) > 0);
+
+        feed.setPreferences(preferences);
         return feed;
     }
 
@@ -527,8 +540,9 @@ public final class DBReader {
         List<FeedItem> items = extractItemlistFromCursor(adapter, itemCursor);
         loadFeedDataOfFeedItemlist(context, items);
         itemCursor.close();
-
         adapter.close();
+
+        Collections.sort(items, new PlaybackCompletionDateComparator());
         return items;
     }
 
@@ -566,7 +580,8 @@ public final class DBReader {
                         .getString(PodDBAdapter.KEY_DOWNLOADSTATUS_TITLE_INDEX);
                 Date completionDate = new Date(
                         logCursor
-                                .getLong(PodDBAdapter.KEY_COMPLETION_DATE_INDEX));
+                                .getLong(PodDBAdapter.KEY_COMPLETION_DATE_INDEX)
+                );
                 downloadLog.add(new DownloadStatus(id, title, feedfileId,
                         feedfileType, successful, DownloadError.fromCode(reason), completionDate,
                         reasonDetailed));
@@ -752,7 +767,8 @@ public final class DBReader {
                 cursor.getString(cursor
                         .getColumnIndex(PodDBAdapter.KEY_DOWNLOAD_URL)),
                 cursor.getInt(cursor
-                        .getColumnIndex(PodDBAdapter.KEY_DOWNLOADED)) > 0);
+                        .getColumnIndex(PodDBAdapter.KEY_DOWNLOADED)) > 0
+        );
         cursor.close();
         return image;
     }
@@ -785,5 +801,49 @@ public final class DBReader {
         adapter.close();
 
         return media;
+    }
+
+    /**
+     * Returns the flattr queue as a List of FlattrThings. The list consists of Feeds and FeedItems.
+     *
+     * @param context A context that is used for opening a database connection.
+     * @return The flattr queue as a List.
+     */
+    public static List<FlattrThing> getFlattrQueue(Context context) {
+        PodDBAdapter adapter = new PodDBAdapter(context);
+        adapter.open();
+        List<FlattrThing> result = new ArrayList<FlattrThing>();
+
+        // load feeds
+        Cursor feedCursor = adapter.getFeedsInFlattrQueueCursor();
+        if (feedCursor.moveToFirst()) {
+            do {
+                result.add(extractFeedFromCursorRow(adapter, feedCursor));
+            } while (feedCursor.moveToNext());
+        }
+        feedCursor.close();
+
+        //load feed items
+        Cursor feedItemCursor = adapter.getFeedItemsInFlattrQueueCursor();
+        result.addAll(extractItemlistFromCursor(adapter, feedItemCursor));
+        feedItemCursor.close();
+
+        adapter.close();
+        Log.d(TAG, "Returning flattrQueueIterator for queue with " + result.size() + " items.");
+        return result;
+    }
+
+
+    /**
+     * Returns true if the flattr queue is empty.
+     *
+     * @param context A context that is used for opening a database connection.
+     */
+    public static boolean getFlattrQueueEmpty(Context context) {
+        PodDBAdapter adapter = new PodDBAdapter(context);
+        adapter.open();
+        boolean empty = adapter.getFlattrQueueSize() == 0;
+        adapter.close();
+        return empty;
     }
 }

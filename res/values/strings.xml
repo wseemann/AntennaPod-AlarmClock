@@ -12,7 +12,7 @@
     <string name="new_label">New</string>
     <string name="waiting_list_label">Waiting list</string>
     <string name="settings_label">Settings</string>
-    <string name="add_new_feed_label">Add a new Feed</string>
+    <string name="add_new_feed_label">Add podcast</string>
     <string name="downloads_label">Downloads</string>
     <string name="cancel_download_label">Cancel Download</string>
     <string name="download_log_label">Download log</string>
@@ -34,13 +34,15 @@
     <string name="cancel_label">Cancel</string>
     <string name="author_label">Author</string>
     <string name="language_label">Language</string>
-    <string name="cover_label">Cover</string>
+    <string name="podcast_settings_label">Settings</string>
+    <string name="cover_label">Picture</string>
     <string name="error_label">Error</string>
     <string name="error_msg_prefix">An error occurred:</string>
     <string name="refresh_label">Refresh</string>
     <string name="external_storage_error_msg">No external storage is available. Please make sure that external storage is mounted so that the app can work properly.</string>
     <string name="chapters_label">Chapters</string>
     <string name="shownotes_label">Shownotes</string>
+    <string name="description_label">Description</string>
     <string name="most_recent_prefix">Most Recent Episode:\u0020</string>
     <string name="episodes_suffix">\u0020episodes</string>
     <string name="published_prefix">Published:\u0020</string>
@@ -51,7 +53,8 @@
     <string name="image_of_prefix">Image of:\u0020</string>
     <string name="save_username_password_label">Save username and password</string>
     <string name="close_label">Close</string>
-    
+    <string name="retry_label">Retry</string>
+    <string name="auto_download_label">Include in auto downloads</string>
 
     <!-- 'Add Feed' Activity labels -->
     <string name="feedurl_label">Feed URL</string>
@@ -65,6 +68,7 @@
     <string name="share_link_label">Share website link</string>
     <string name="share_source_label">Share feed link</string>
     <string name="feed_delete_confirmation_msg">Please confirm that you want to delete this feed and ALL episodes of this feed that you have downloaded.</string>
+    <string name="feed_remover_msg">Removing feed</string>
 
     <!-- actions on feeditems -->
     <string name="download_label">Download</string>
@@ -103,6 +107,7 @@
     <string name="download_error_malformed_url">Malformed URL</string>
     <string name="download_error_io_error">IO Error</string>
     <string name="download_error_request_error">Request error</string>
+    <string name="download_error_db_access">Database access error</string>
     <string name="downloads_left">\u0020Downloads left</string>
     <string name="download_notification_title">Downloading podcast data</string>
     <string name="download_report_content">%1$d downloads succeeded, %2$d failed</string>
@@ -150,9 +155,20 @@
     <string name="action_forbidden_msg">AntennaPod has no permission for this action. The reason for this could be that the access token of AntennaPod to your account has been revoked. You can either re-reauthenticate or visit the website of the thing instead.</string>
     <string name="access_revoked_title">Access revoked</string>
     <string name="access_revoked_info">You have successfully revoked AntennaPod\'s access token to your account. In order to complete the process, you have to remove this app from the list of approved applications in your account settings on the flattr website.</string>
-    <string name="flattr_click_success">Successfully flattred this thing!</string>
-    <string name="flattring_label">Flattring</string>
     
+    <!-- Flattr -->
+    <string name="flattr_click_success">Flattr\'ed one thing!</string>
+    <string name="flattr_click_success_count">Flattr\'ed %d things!</string>
+    <string name="flattr_click_success_queue">Flattr\'ed: %s.</string>
+    <string name="flattr_click_failure_count">Failed to flattr %d things!</string>
+    <string name="flattr_click_failure">Not flattr\'ed: %s.</string>
+    <string name="flattr_click_enqueued">Thing will be flattr\'ed later</string>
+    <string name="flattring_thing">Flattring %s</string>
+    <string name="flattring_label">AntennaPod is flattring</string>
+    <string name="flattrd_label">AntennaPod has flattr\'ed</string>
+    <string name="flattrd_failed_label">AntennaPod flattr failed</string>
+    <string name="flattr_retrieving_status">Retrieving flattr\'ed things</string>
+
     <!--  Variable Speed -->
     <string name="download_plugin_label">Download Plugin</string>
     <string name="no_playback_plugin_title">Plugin Not Installed</string>
@@ -189,6 +205,8 @@
     <string name="pref_flattr_this_app_sum">Support the development of AntennaPod by flattring it. Thanks!</string>
     <string name="pref_revokeAccess_title">Revoke access</string>
     <string name="pref_revokeAccess_sum">Revoke the access permission to your flattr account for this app.</string>
+	<string name="pref_auto_flattr_title">Automatic Flattr</string>
+    <string name="pref_auto_flattr_sum">Flattr episodes of which 80% have been played.</string>
     <string name="pref_display_only_episodes_title">Display only episodes</string>
     <string name="pref_display_only_episodes_sum">Display only items which also have an episode.</string>
     <string name="user_interface_label">User Interface</string>
@@ -213,6 +231,8 @@
     <string name="pref_gpodnet_setlogin_information_sum">Change the login information for your gpodder.net account.</string>
     <string name="pref_playback_speed_title">Playback Speeds</string>
     <string name="pref_playback_speed_sum">Customize the speeds available for variable speed audio playback</string>
+    <string name="pref_gpodnet_sethostname_title">Set hostname</string>
+    <string name="pref_gpodnet_sethostname_use_default_host">Use default host</string>
    
 
     <!-- Search -->
@@ -227,7 +247,7 @@
     <string name="found_in_title_label">Found in title</string>
 
     <!-- OPML import and export -->
-    <string name="opml_import_txtv_button_lable">You can also import an OPML file. OPML files allow you to move your podcasts from one podcatcher to another:</string>
+    <string name="opml_import_txtv_button_lable">OPML files allow you to move your podcasts from one podcatcher to another.</string>
     <string name="opml_import_explanation">To import an OPML file, you have to place it in the following directory and press the button below to start the import process. </string>
     <string name="start_import_label">Start import</string>
     <string name="opml_import_label">OPML import</string>
@@ -260,7 +280,7 @@
     <string name="miro_search_hint">Search Miro Guide</string>
     <string name="popular_label">Popular</string>
     <string name="best_rating_label">Best rating</string>
-    <string name="add_feed_label">Add feed</string>
+    <string name="add_feed_label">Add podcast</string>
     <string name="miro_feed_added">Feed is being added</string>
 
     <!-- gpodder.net -->
@@ -276,16 +296,16 @@
     <string name="password_label">Password</string>
     <string name="gpodnetauth_device_title">Device Selection</string>
     <string name="gpodnetauth_device_descr">Create a new device to use for your gpodder.net account or choose an existing one:</string>
-    <string name="gpodnetauth_device_deviceID">Device ID</string>
+    <string name="gpodnetauth_device_deviceID">Device ID:\u0020</string>
     <string name="gpodnetauth_device_caption">Caption</string>
     <string name="gpodnetauth_device_butCreateNewDevice">Create new device</string>
-    <string name="gpodnetauth_device_chooseExistingDevice">Choose existring device:</string>
+    <string name="gpodnetauth_device_chooseExistingDevice">Choose existing device:</string>
     <string name="gpodnetauth_device_errorEmpty">Device ID must not be empty</string>
     <string name="gpodnetauth_device_errorAlreadyUsed">Device ID already in use</string>
 
     <string name="gpodnetauth_device_butChoose">Choose</string>
     <string name="gpodnetauth_finish_title">Login successful!</string>
-    <string name="gpodnetauth_finish_descr">Congratulations! Your gpodder.net account is now linked with your device. AntennaPod will from now on automagically sync subscriptions on your device with your gpodder.net account.</string>
+    <string name="gpodnetauth_finish_descr">Congratulations! Your gpodder.net account is now linked with your device. AntennaPod will from now on automatically sync subscriptions on your device with your gpodder.net account.</string>
     <string name="gpodnetauth_finish_butsyncnow">Start sync now</string>
     <string name="gpodnetauth_finish_butgomainscreen">Go to main screen</string>
 
@@ -306,9 +326,29 @@
     <string name="folder_not_empty_dialog_title">Folder is not empty</string>
     <string name="folder_not_empty_dialog_msg">The folder you have selected is not empty. Media downloads and other files will be placed directly in this folder. Continue anyway?</string>
     <string name="set_to_default_folder">Choose default folder</string>
+    <string name="pref_pausePlaybackForFocusLoss_sum">Pause playback instead of lowering volume when another app wants to play sounds</string>
+    <string name="pref_pausePlaybackForFocusLoss_title">Pause for interruptions</string>
 
     <!-- Online feed view -->
     <string name="subscribe_label">Subscribe</string>
     <string name="subscribed_label">Subscribed</string>
     <string name="downloading_label">Downloading...</string>
+
+    <!-- Content descriptions for image buttons -->
+    <string name="show_chapters_label">Show chapters</string>
+    <string name="show_shownotes_label">Show shownotes</string>
+    <string name="show_cover_label">Show picture</string>
+    <string name="rewind_label">Rewind</string>
+    <string name="fast_forward_label">Fast forward</string>
+    <string name="media_type_audio_label">Audio</string>
+    <string name="media_type_video_label">Video</string>
+    <string name="navigate_upwards_label">Navigate upwards</string>
+    <string name="butAction_label">More actions</string>
+    <string name="status_playing_label">Episode is being played</string>
+    <string name="status_downloading_label">Episode is being downloaded</string>
+    <string name="status_downloaded_label">Episode is downloaded</string>
+    <string name="status_unread_label">Item is new</string>
+    <string name="in_queue_label">Episode is in the queue</string>
+    <string name="new_episodes_count_label">Number of new episodes</string>
+    <string name="in_progress_episodes_count_label">Number of episodes you have started listening to</string>
 </resources>

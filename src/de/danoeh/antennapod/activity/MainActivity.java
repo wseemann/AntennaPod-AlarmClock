@@ -29,7 +29,7 @@ import de.danoeh.antennapod.fragment.EpisodesFragment;
 import de.danoeh.antennapod.fragment.ExternalPlayerFragment;
 import de.danoeh.antennapod.fragment.FeedlistFragment;
 import de.danoeh.antennapod.preferences.UserPreferences;
-import de.danoeh.antennapod.service.PlaybackService;
+import de.danoeh.antennapod.service.playback.PlaybackService;
 import de.danoeh.antennapod.service.download.DownloadService;
 import de.danoeh.antennapod.storage.DBReader;
 import de.danoeh.antennapod.storage.DBTasks;
@@ -166,6 +166,7 @@ public class MainActivity extends ActionBarActivity {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
 		MenuItem refreshAll = menu.findItem(R.id.all_feed_refresh);
 		if (DownloadService.isRunning
 				&& DownloadRequester.getInstance().isDownloadingFeeds()) {
@@ -178,7 +179,8 @@ public class MainActivity extends ActionBarActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = new MenuInflater(this);
+        super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.main, menu);
 
         SearchManager searchManager =

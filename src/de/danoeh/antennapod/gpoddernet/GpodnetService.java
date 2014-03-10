@@ -1,7 +1,8 @@
 package de.danoeh.antennapod.gpoddernet;
 
-import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.gpoddernet.model.*;
+import de.danoeh.antennapod.preferences.GpodnetPreferences;
+import de.danoeh.antennapod.service.download.AntennapodHttpClient;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -9,13 +10,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.params.CoreProtocolPNames;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,13 +38,15 @@ import java.util.List;
 public class GpodnetService {
 
     private static final String BASE_SCHEME = "https";
-    private static final String BASE_HOST = "gpodder.net";
 
-    private GpodnetClient httpClient;
+    public static final String DEFAULT_BASE_HOST = "gpodder.net";
+    private final String BASE_HOST;
+
+    private final HttpClient httpClient;
 
     public GpodnetService() {
-        httpClient = new GpodnetClient();
-        httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, AppConfig.USER_AGENT);
+        httpClient = AntennapodHttpClient.getHttpClient();
+        BASE_HOST = GpodnetPreferences.getHostname();
     }
 
     /**
@@ -507,7 +510,7 @@ public class GpodnetService {
         new Thread() {
             @Override
             public void run() {
-                httpClient.getConnectionManager().shutdown();
+                AntennapodHttpClient.cleanup();
             }
         }.start();
     }

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import android.media.MediaMetadataRetriever;
 import de.danoeh.antennapod.storage.*;
 import org.xml.sax.SAXException;
 
@@ -25,7 +26,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
@@ -412,7 +412,8 @@ public class DownloadService extends Service {
     }
 
     private Downloader getDownloader(DownloadRequest request) {
-        if (URLUtil.isHttpUrl(request.getSource())) {
+        if (URLUtil.isHttpUrl(request.getSource())
+            || URLUtil.isHttpsUrl(request.getSource())) {
             return new HttpDownloader(request);
         }
         Log.e(TAG,
@@ -800,23 +801,21 @@ public class DownloadService extends Service {
             media.setFile_url(request.getDestination());
 
             // Get duration
-            MediaPlayer mediaplayer = null;
+            MediaMetadataRetriever mmr = null;
             try {
-                mediaplayer = new MediaPlayer();
-                mediaplayer.setDataSource(media.getFile_url());
-                mediaplayer.prepare();
-                media.setDuration(mediaplayer.getDuration());
+                mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(media.getFile_url());
+                String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                media.setDuration(Integer.parseInt(durationStr));
                 if (AppConfig.DEBUG)
                     Log.d(TAG, "Duration of file is " + media.getDuration());
-                mediaplayer.reset();
-            } catch (IOException e) {
+            } catch (NumberFormatException e) {
                 e.printStackTrace();
             } catch (RuntimeException e) {
-                // Thrown by MediaPlayer initialization on some devices
                 e.printStackTrace();
             } finally {
-                if (mediaplayer != null) {
-                    mediaplayer.release();
+                if (mmr != null) {
+                    mmr.release();
                 }
             }
 
@@ -827,23 +826,24 @@ public class DownloadService extends Service {
                 }
             }
 
-            saveDownloadStatus(status);
-            sendDownloadHandledIntent();
-
             try {
                 if (chaptersRead) {
                     DBWriter.setFeedItem(DownloadService.this, media.getItem()).get();
                 }
                 DBWriter.setFeedMedia(DownloadService.this, media).get();
+                if (!DBTasks.isInQueue(DownloadService.this, media.getItem().getId())) {
+                    DBWriter.addQueueItem(DownloadService.this, media.getItem().getId()).get();
+                }
             } catch (ExecutionException e) {
                 e.printStackTrace();
+                status = new DownloadStatus(media, media.getEpisodeTitle(), DownloadError.ERROR_DB_ACCESS_ERROR, false, e.getMessage());
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                status = new DownloadStatus(media, media.getEpisodeTitle(), DownloadError.ERROR_DB_ACCESS_ERROR, false, e.getMessage());
             }
 
-            if (!DBTasks.isInQueue(DownloadService.this, media.getItem().getId())) {
-                DBWriter.addQueueItem(DownloadService.this, media.getItem().getId());
-            }
+            saveDownloadStatus(status);
+            sendDownloadHandledIntent();
 
             numberOfDownloads.decrementAndGet();
             queryDownloadsAsync();

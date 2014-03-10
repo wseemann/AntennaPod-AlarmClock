@@ -2,10 +2,6 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/user_interface_label">
-        <CheckBoxPreference
-            android:title="@string/pref_display_only_episodes_title"
-            android:summary="@string/pref_display_only_episodes_sum"
-            android:key="prefDisplayOnlyEpisodes"/>
         <ListPreference
             android:entryValues="@array/theme_values"
             android:entries="@array/theme_options"
@@ -31,6 +27,13 @@
             android:key="prefPlaybackSpeedLauncher"
             android:summary="@string/pref_playback_speed_sum"
             android:title="@string/pref_playback_speed_title" />
+        
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="prefPauseForFocusLoss"
+            android:summary="@string/pref_pausePlaybackForFocusLoss_sum"
+            android:title="@string/pref_pausePlaybackForFocusLoss_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/network_pref">
         <ListPreference
@@ -80,6 +83,12 @@
                 <intent android:action=".activities.FlattrAuthActivity"/>
             </PreferenceScreen>
 
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:enabled="false"
+                android:key="pref_auto_flattr"
+                android:summary="@string/pref_auto_flattr_sum"
+                android:title="@string/pref_auto_flattr_title" />
             <Preference
                 android:key="prefRevokeAccess"
                 android:summary="@string/pref_revokeAccess_sum"
@@ -102,8 +111,10 @@
             <Preference
                 android:key="pref_gpodnet_logout"
                 android:title="@string/pref_gpodnet_logout_title"/>
+            <Preference
+                android:key="pref_gpodnet_hostname"
+                android:title="@string/pref_gpodnet_sethostname_title"/>
         </PreferenceScreen>
-
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/other_pref">
         <Preference

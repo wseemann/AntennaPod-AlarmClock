@@ -26,13 +26,16 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 
     public static final int FEEDFILETYPE_FEEDMEDIA = 2;
     public static final int PLAYABLE_TYPE_FEEDMEDIA = 1;
+
     public static final String PREF_MEDIA_ID = "FeedMedia.PrefMediaId";
     public static final String PREF_FEED_ID = "FeedMedia.PrefFeedId";
+
     protected int duration;
-    protected int position;
-    protected long size;
+    protected int position; // Current position in file
+    protected long size; // File size in Byte
+    protected int played_duration; // How many ms of this file have been played (for autoflattring)
     protected String mime_type;
-    protected FeedItem item;
+    protected volatile FeedItem item;
     protected Date playbackCompletionDate;
 
     /**
@@ -44,6 +47,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
      * Points to a remote resource that can be streamed by the playback service.
      */
     protected String streamUrl;
+
 
     /* Used for loading item when restoring from parcel. */
     private long itemID;
@@ -59,7 +63,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
     public FeedMedia(long id, FeedItem item, int duration, int position,
                      long size, String mime_type, String file_url, String download_url,
                      boolean downloaded, Date playbackCompletionDate,
-                     String localFileUrl, String streamUrl) {
+                     String localFileUrl, String streamUrl, int played_duration) {
         super(file_url, download_url, downloaded);
         this.id = id;
         this.item = item;
@@ -67,9 +71,11 @@ public abstract class FeedMedia extends FeedFile implements Playable {
         this.position = position;
         this.size = size;
         this.mime_type = mime_type;
-        this.playbackCompletionDate = playbackCompletionDate;
+        this.played_duration = played_duration;
         this.localFileUrl = localFileUrl;
         this.streamUrl = streamUrl;
+        this.playbackCompletionDate = playbackCompletionDate == null
+                ? null : (Date) playbackCompletionDate.clone();
     }
 
     public FeedMedia(long id, FeedItem item) {
@@ -81,12 +87,12 @@ public abstract class FeedMedia extends FeedFile implements Playable {
     public static FeedMedia createFromParcel(long id, FeedItem item, int duration, int position,
                                              long size, String mime_type, String file_url, String download_url,
                                              boolean downloaded, Date playbackCompletionDate,
-                                             String localFileUrl, String streamUrl, int playableType, Parcel p) {
+                                             String localFileUrl, String streamUrl, int played_duration, int playableType, Parcel p) {
         switch (playableType) {
             case EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA:
-                return new EnclosedFeedMedia(id, item, duration, position, size, mime_type, file_url, download_url, downloaded, playbackCompletionDate, p.readString());
+                return new EnclosedFeedMedia(id, item, duration, position, size, mime_type, file_url, download_url, downloaded, playbackCompletionDate, p.readString(), played_duration);
             case BitTorrentFeedMedia.PLAYABLE_TYPE_BITTORRENT_MEDIA:
-                return new BitTorrentFeedMedia(id, item, duration, position, size, mime_type, file_url, download_url, downloaded, playbackCompletionDate, localFileUrl, streamUrl);
+                return new BitTorrentFeedMedia(id, item, duration, position, size, mime_type, file_url, download_url, downloaded, playbackCompletionDate, localFileUrl, streamUrl, played_duration);
             default:
                 return null;
         }
@@ -151,6 +157,14 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+
+    public int getPlayedDuration() {
+        return played_duration;
+    }
+
+    public void setPlayedDuration(int played_duration) {
+        this.played_duration = played_duration;
     }
 
     public int getPosition() {
@@ -234,6 +248,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
         dest.writeLong((playbackCompletionDate != null) ? playbackCompletionDate.getTime() : 0);
         dest.writeString(localFileUrl);
         dest.writeString(streamUrl);
+        dest.writeInt(played_duration);
         dest.writeInt(getPlayableType());
     }
 
@@ -333,7 +348,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 
     @Override
     public void saveCurrentPosition(SharedPreferences pref, int newPosition) {
-        position = newPosition;
+        setPosition(newPosition);
         DBWriter.setFeedMediaPlaybackInformation(PodcastApp.getInstance(), this);
     }
 
@@ -390,7 +405,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
             final long id = in.readLong();
             final long itemID = in.readLong();
             FeedMedia result = FeedMedia.createFromParcel(id, null, in.readInt(), in.readInt(), in.readLong(), in.readString(), in.readString(),
-                    in.readString(), in.readByte() != 0, new Date(in.readLong()), in.readString(), in.readString(), in.readInt(), in);
+                    in.readString(), in.readByte() != 0, new Date(in.readLong()), in.readString(), in.readString(), in.readInt(), in.readInt(), in);
             result.itemID = itemID;
             return result;
         }
@@ -402,7 +417,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 
     @Override
     public InputStream openImageInputStream() {
-        InputStream out = new DefaultPlayableImageLoader(this)
+        InputStream out = new Playable.DefaultPlayableImageLoader(this)
                 .openImageInputStream();
         if (out == null) {
             if (item.getFeed().getImage() != null) {
@@ -414,7 +429,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
 
     @Override
     public String getImageLoaderCacheKey() {
-        String out = new DefaultPlayableImageLoader(this)
+        String out = new Playable.DefaultPlayableImageLoader(this)
                 .getImageLoaderCacheKey();
         if (out == null) {
             if (item.getFeed().getImage() != null) {
@@ -429,7 +444,7 @@ public abstract class FeedMedia extends FeedFile implements Playable {
         if (input instanceof FileInputStream) {
             return item.getFeed().getImage().reopenImageInputStream(input);
         } else {
-            return new DefaultPlayableImageLoader(this)
+            return new Playable.DefaultPlayableImageLoader(this)
                     .reopenImageInputStream(input);
         }
     }

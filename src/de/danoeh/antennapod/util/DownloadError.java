@@ -18,8 +18,11 @@ public enum DownloadError {
 	ERROR_NOT_ENOUGH_SPACE(10, R.string.download_error_insufficient_space),
 	ERROR_UNKNOWN_HOST(11, R.string.download_error_unknown_host),
 	ERROR_REQUEST_ERROR(12, R.string.download_error_request_error),
-    ERROR_BITTORRENT_ERROR(13, R.string.download_error_bittorrent_error);
-	private final int code;
+    ERROR_DB_ACCESS_ERROR(13, R.string.download_error_db_access),
+    ERROR_BITTORRENT_ERROR(14, R.string.download_error_bittorrent_error);
+
+
+    private final int code;
 	private final int resId;
 
 	private DownloadError(int code, int resId) {

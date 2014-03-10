@@ -28,20 +28,20 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
     public EnclosedFeedMedia(long id, FeedItem item, int duration,
                              int position, long size, String mime_type, String file_url,
                              String download_url, boolean downloaded,
-                             Date playbackCompletionDate, String originalEnclosureLink) {
+                             Date playbackCompletionDate, String originalEnclosureLink, int played_duration) {
         super(id, item, duration, position, size, mime_type, file_url,
                 download_url, downloaded, playbackCompletionDate, file_url,
-                download_url);
+                download_url, played_duration);
         this.originalEnclosureLink = originalEnclosureLink;
     }
 
     public EnclosedFeedMedia(long id, FeedItem item, int duration,
                              int position, long size, String mime_type, String file_url,
                              String download_url, boolean downloaded,
-                             Date playbackCompletionDate) {
+                             Date playbackCompletionDate, int played_duration) {
         super(id, item, duration, position, size, mime_type, file_url,
                 download_url, downloaded, playbackCompletionDate, file_url,
-                download_url);
+                download_url, played_duration);
         this.originalEnclosureLink = download_url;
     }
 

@@ -61,7 +61,7 @@ public class DBWriterTest extends InstrumentationTestCase {
         feed.setItems(items);
         FeedItem item = new FeedItem(0, "Item", "Item", "url", new Date(), true, feed);
 
-        FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", dest.getAbsolutePath(), "download_url", true, null);
+        FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", dest.getAbsolutePath(), "download_url", true, null, 0);
         item.setMedia(media);
 
         items.add(item);
@@ -105,7 +105,7 @@ public class DBWriterTest extends InstrumentationTestCase {
             assertTrue(enc.createNewFile());
             itemFiles.add(enc);
 
-            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", true, null);
+            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", true, null, 0);
             item.setMedia(media);
         }
 
@@ -166,7 +166,7 @@ public class DBWriterTest extends InstrumentationTestCase {
             assertTrue(enc.createNewFile());
 
             itemFiles.add(enc);
-            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", true, null);
+            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", true, null, 0);
             item.setMedia(media);
         }
 
@@ -314,7 +314,7 @@ public class DBWriterTest extends InstrumentationTestCase {
             File enc = new File(destFolder, "file " + i);
             itemFiles.add(enc);
 
-            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", false, null);
+            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", false, null, 0);
             item.setMedia(media);
         }
 
@@ -386,7 +386,7 @@ public class DBWriterTest extends InstrumentationTestCase {
             File enc = new File(destFolder, "file " + i);
             itemFiles.add(enc);
 
-            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", false, null);
+            FeedMedia media = new EnclosedFeedMedia(0, item, 1, 1, 1, "mime_type", enc.getAbsolutePath(), "download_url", false, null, 0);
             item.setMedia(media);
         }
 
@@ -427,7 +427,7 @@ public class DBWriterTest extends InstrumentationTestCase {
         Feed feed = new Feed("url", new Date(), "title");
         feed.setItems(new ArrayList<FeedItem>());
         FeedItem item = new FeedItem(0, "title", "id", "link", new Date(), true, feed);
-        FeedMedia media = new EnclosedFeedMedia(0, item, 10, 0, 1, "mime", null, "url", false, playbackCompletionDate);
+        FeedMedia media = new EnclosedFeedMedia(0, item, 10, 0, 1, "mime", null, "url", false, playbackCompletionDate, 0);
         feed.getItems().add(item);
         item.setMedia(media);
         PodDBAdapter adapter = new PodDBAdapter(context);
@@ -705,7 +705,7 @@ public class DBWriterTest extends InstrumentationTestCase {
         }
     }
 
-    public void testMarkAllItemsReadSameFeed() {
+    public void testMarkAllItemsReadSameFeed() throws InterruptedException, ExecutionException, TimeoutException {
         final Context context = getInstrumentation().getTargetContext();
         final int NUM_ITEMS = 10;
         Feed feed = new Feed("url", new Date(), "title");
@@ -725,7 +725,7 @@ public class DBWriterTest extends InstrumentationTestCase {
             assertTrue(item.getId() != 0);
         }
 
-        DBWriter.markAllItemsRead(context);
+        DBWriter.markAllItemsRead(context).get(TIMEOUT, TimeUnit.SECONDS);
         List<FeedItem> loadedItems = DBReader.getFeedItemList(context, feed);
         for (FeedItem item : loadedItems) {
             assertTrue(item.isRead());
