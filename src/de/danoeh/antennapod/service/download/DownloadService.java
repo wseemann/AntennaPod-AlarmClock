@@ -25,6 +25,7 @@ import de.danoeh.antennapod.activity.DownloadLogActivity;
 import de.danoeh.antennapod.bittorrent.LibtorrentException;
 import de.danoeh.antennapod.bittorrent.Session;
 import de.danoeh.antennapod.feed.*;
+import de.danoeh.antennapod.preferences.UserPreferences;
 import de.danoeh.antennapod.storage.*;
 import de.danoeh.antennapod.syndication.handler.FeedHandler;
 import de.danoeh.antennapod.syndication.handler.UnsupportedFeedtypeException;
@@ -412,6 +413,7 @@ public class DownloadService extends Service {
     }
 
     private Downloader getDownloader(DownloadRequest request) {
+
         if (request.getSource().endsWith(".torrent") && Session.isTorrentLibAvailable()) {
             try {
                 return new BitTorrentDownloader(request, BittorrentSessionProvider.getSession());
@@ -422,8 +424,18 @@ public class DownloadService extends Service {
 
         if (URLUtil.isHttpUrl(request.getSource())
                 || URLUtil.isHttpsUrl(request.getSource())) {
-            return new HttpDownloader(request);
+            try {
+                if (request.getFeedfileType() == FeedMedia.FEEDFILETYPE_FEEDMEDIA && UserPreferences.isBitloveDownloadEnabled()) {
+                    return new BitloveDownloader(request, BittorrentSessionProvider.getSession(), this);
+                } else {
+                    return new HttpDownloader(request);
+                }
+            } catch (LibtorrentException e) {
+                e.printStackTrace();
+                return new HttpDownloader(request);
+            }
         }
+
         Log.e(TAG,
                 "Could not find appropriate downloader for "
                         + request.getSource()

@@ -6,7 +6,7 @@ import android.os.Parcelable;
 public class DownloadRequest implements Parcelable {
 
 	private String destination;
-	private final String source;
+	private String source;
 	private final String title;
 	private final long feedfileId;
 	private final int feedfileType;
@@ -177,5 +177,9 @@ public class DownloadRequest implements Parcelable {
 
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

@@ -23,6 +23,7 @@ import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.asynctask.FlattrClickWorker;
 import de.danoeh.antennapod.asynctask.OpmlExportWorker;
+import de.danoeh.antennapod.bittorrent.Session;
 import de.danoeh.antennapod.dialog.AuthenticationDialog;
 import de.danoeh.antennapod.dialog.GpodnetSetHostnameDialog;
 import de.danoeh.antennapod.dialog.VariableSpeedDialog;
@@ -308,6 +309,8 @@ public class PreferenceActivity extends android.preference.PreferenceActivity {
 
         findPreference(UserPreferences.PREF_ENABLE_AUTODL_WIFI_FILTER)
                 .setEnabled(UserPreferences.isEnableAutodownload());
+        findPreference(UserPreferences.PREF_ENABLE_BITLOVE_DOWNLOAD)
+                .setEnabled(Session.isTorrentLibAvailable());
         setSelectedNetworksEnabled(UserPreferences.isEnableAutodownload()
                 && UserPreferences.isEnableAutodownloadWifiFilter());
 
