@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.FutureTask;
 
 import android.content.Context;
+import de.danoeh.antennapod.feed.*;
 import de.danoeh.antennapod.storage.DBReader;
 import de.danoeh.antennapod.util.ShownotesProvider;
 import org.apache.commons.io.IOUtils;
@@ -15,9 +16,6 @@ import android.media.MediaMetadataRetriever;
 import android.os.Parcelable;
 import android.util.Log;
 import de.danoeh.antennapod.asynctask.ImageLoader;
-import de.danoeh.antennapod.feed.Chapter;
-import de.danoeh.antennapod.feed.FeedMedia;
-import de.danoeh.antennapod.feed.MediaType;
 
 /**
  * Interface for objects that can be played by the PlaybackService.
@@ -167,6 +165,8 @@ public interface Playable extends Parcelable,
             // ADD new Playable types here:
             switch (type) {
                 case FeedMedia.PLAYABLE_TYPE_FEEDMEDIA:
+                case BitTorrentFeedMedia.PLAYABLE_TYPE_BITTORRENT_MEDIA:
+                case EnclosedFeedMedia.PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA:
                     long mediaId = pref.getLong(FeedMedia.PREF_MEDIA_ID, -1);
                     if (mediaId != -1) {
                         return DBReader.getFeedMedia(context, mediaId);

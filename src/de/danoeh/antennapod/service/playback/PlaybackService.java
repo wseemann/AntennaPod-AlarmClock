@@ -245,7 +245,10 @@ public class PlaybackService extends Service {
 
         if (AppConfig.DEBUG)
             Log.d(TAG, "OnStartCommand called");
-        final int keycode = intent.getIntExtra(MediaButtonReceiver.EXTRA_KEYCODE, -1);
+        int keycode = -1;
+        if (intent.hasExtra(MediaButtonReceiver.EXTRA_KEYCODE)) {
+            keycode = intent.getIntExtra(MediaButtonReceiver.EXTRA_KEYCODE, -1);
+        }
         final Playable playable = intent.getParcelableExtra(EXTRA_PLAYABLE);
         if (keycode == -1 && playable == null) {
             Log.e(TAG, "PlaybackService was started with no arguments");

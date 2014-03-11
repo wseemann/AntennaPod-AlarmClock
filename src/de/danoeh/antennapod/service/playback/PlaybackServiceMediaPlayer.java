@@ -18,10 +18,7 @@ import de.danoeh.antennapod.util.playback.Playable;
 import de.danoeh.antennapod.util.playback.VideoPlayer;
 
 import java.io.IOException;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -78,6 +75,19 @@ public class PlaybackServiceMediaPlayer {
                         if (AppConfig.DEBUG) Log.d(TAG, "Rejected execution of runnable");
                     }
                 });
+        executor.setThreadFactory(new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                    @Override
+                    public void uncaughtException(Thread thread, Throwable ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                return t;
+            }
+        });
 
         mediaPlayer = null;
         statusBeforeSeeking = null;
@@ -124,6 +134,7 @@ public class PlaybackServiceMediaPlayer {
                 try {
                     playMediaObject(playable, false, stream, startWhenPrepared, prepareImmediately);
                 } catch (RuntimeException e) {
+                    e.printStackTrace();
                     throw e;
                 } finally {
                     playerLock.unlock();

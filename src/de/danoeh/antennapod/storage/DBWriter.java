@@ -17,6 +17,7 @@ import de.danoeh.antennapod.util.QueueAccess;
 import de.danoeh.antennapod.util.flattr.FlattrStatus;
 import de.danoeh.antennapod.util.flattr.FlattrThing;
 import de.danoeh.antennapod.util.flattr.SimpleFlattrThing;
+import org.apache.commons.lang3.StringUtils;
 import org.shredzone.flattr4j.model.Flattr;
 
 import java.io.File;
@@ -77,13 +78,7 @@ public class DBWriter {
                             media.getId(), media.getEpisodeTitle(), String.valueOf(media.isDownloaded())));
                     boolean result = false;
                     if (media.isDownloaded()) {
-                        // delete downloaded media file
-                        File mediaFile = new File(media.getFile_url());
-                        if (mediaFile.exists()) {
-                            result = mediaFile.delete();
-                        }
-                        media.setDownloaded(false);
-                        media.setFile_url(null);
+                        result = media.deleteAllLocalFiles();
                         PodDBAdapter adapter = new PodDBAdapter(context);
                         adapter.open();
                         adapter.setMedia(media);

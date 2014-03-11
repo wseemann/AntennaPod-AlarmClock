@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 public class DownloadRequest implements Parcelable {
 
-	private final String destination;
+	private String destination;
 	private final String source;
 	private final String title;
 	private final long feedfileId;
@@ -174,4 +174,8 @@ public class DownloadRequest implements Parcelable {
 	public void setStatusMsg(int statusMsg) {
 		this.statusMsg = statusMsg;
 	}
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
 }

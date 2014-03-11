@@ -95,7 +95,7 @@ public class PlaybackServiceTaskManagerTest extends InstrumentationTestCase {
         EventDistributor.getInstance().register(queueListener);
         List<FeedItem> queue = writeTestQueue("a");
         EventDistributor.getInstance().sendQueueUpdateBroadcast();
-        countDownLatch.await(5000, TimeUnit.MILLISECONDS);
+        assertTrue(countDownLatch.await(5000, TimeUnit.MILLISECONDS));
 
         assertNotNull(queue);
         testQueue = pstm.getQueue();

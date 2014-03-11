@@ -250,6 +250,9 @@ public abstract class FeedMedia extends FeedFile implements Playable {
         dest.writeString(streamUrl);
         dest.writeInt(played_duration);
         dest.writeInt(getPlayableType());
+        if (this instanceof EnclosedFeedMedia) {
+            dest.writeString(((EnclosedFeedMedia) this).getOriginalEnclosureLink());
+        }
     }
 
     @Override
@@ -382,6 +385,15 @@ public abstract class FeedMedia extends FeedFile implements Playable {
     public void setLocalFileUrl(String localFileUrl) {
         this.localFileUrl = localFileUrl;
     }
+
+    /**
+     * Deletes all files that are associated with this FeedMedia object.
+     * This method also resets the 'downloaded' state and all URLs that point
+     * to associated files.
+     *
+     * @return True if all files could be deleted successfully, false otherwise.
+     */
+    public abstract boolean deleteAllLocalFiles();
 
     @Override
     public Callable<String> loadShownotes() {

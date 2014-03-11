@@ -3,6 +3,7 @@ package de.danoeh.antennapod.feed;
 import de.danoeh.antennapod.util.ChapterUtils;
 import de.danoeh.antennapod.util.playback.Playable;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -12,7 +13,7 @@ import java.util.Date;
  * respectively.
  */
 public class EnclosedFeedMedia extends FeedMedia implements Playable {
-    public static final int PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA = 1;
+    public static final int PLAYABLE_TYPE_ENCLOSED_FEEDMEDIA = 4;
 
     /**
      * Points to originalEnclosureLink if feedburner was used.
@@ -66,6 +67,7 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
 
     @Override
     public void loadMetadata() throws PlayableException {
+        super.loadMetadata();
         if (getChapters() == null && !isDownloaded()) {
             ChapterUtils.loadChaptersFromStreamUrl(this);
         }
@@ -90,6 +92,21 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
     public void setStreamUrl(String streamUrl) {
         super.setStreamUrl(streamUrl);
         download_url = streamUrl;
+    }
+
+    @Override
+    public boolean deleteAllLocalFiles() {
+        boolean result = false;
+        if (file_url != null) {
+            File f = new File(file_url);
+            if (f.exists()) {
+                result = f.delete();
+            }
+        }
+        file_url = null;
+        localFileUrl = null;
+        downloaded = false;
+        return result;
     }
 
     @Override
@@ -157,4 +174,15 @@ public class EnclosedFeedMedia extends FeedMedia implements Playable {
         this.originalEnclosureLink = originalEnclosureLink;
     }
 
+    @Override
+    public void setLocalFileUrl(String localFileUrl) {
+        super.setLocalFileUrl(localFileUrl);
+        file_url = localFileUrl;
+    }
+
+    @Override
+    public void setFile_url(String file_url) {
+        super.setFile_url(file_url);
+        localFileUrl = file_url;
+    }
 }

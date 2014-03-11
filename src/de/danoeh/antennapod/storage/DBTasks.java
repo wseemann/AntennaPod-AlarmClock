@@ -101,9 +101,9 @@ public final class DBTasks {
                                  boolean showPlayer, boolean startWhenPrepared, boolean shouldStream) {
         try {
             if (!shouldStream) {
-                if (media.fileExists() == false) {
+                if (!media.localFileAvailable()) {
                     throw new MediaFileNotFoundException(
-                            "No episode was found at " + media.getFile_url(),
+                            "No episode was found at " + media.getLocalMediaUrl(),
                             media);
                 }
             }

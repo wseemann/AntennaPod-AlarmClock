@@ -2,6 +2,7 @@ package de.danoeh.antennapod.feed;
 
 import de.danoeh.antennapod.syndication.util.SyndTypeUtils;
 
+import java.io.File;
 import java.util.Date;
 
 public class BitTorrentFeedMedia extends FeedMedia {
@@ -28,11 +29,6 @@ public class BitTorrentFeedMedia extends FeedMedia {
 
     public BitTorrentFeedMedia(long id, FeedItem item) {
         super(id, item);
-    }
-
-    @Override
-    public void loadMetadata() throws PlayableException {
-
     }
 
     @Override
@@ -83,4 +79,24 @@ public class BitTorrentFeedMedia extends FeedMedia {
         return MediaType.UNKNOWN;
     }
 
+    @Override
+    public boolean deleteAllLocalFiles() {
+        boolean result = false;
+        if (localFileUrl != null) {
+            File f = new File(localFileUrl);
+            if (f.exists()) {
+                result = f.delete();
+            }
+        }
+        if (file_url != null) {
+            File f = new File(file_url);
+            if (f.exists()) {
+                result = result && f.delete();
+            }
+        }
+        localFileUrl = null;
+        file_url = null;
+        downloaded = false;
+        return false;
+    }
 }
