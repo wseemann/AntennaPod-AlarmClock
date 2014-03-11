@@ -13,6 +13,7 @@ bin/
 gen/
 target/
 build/
+obj/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -38,6 +39,9 @@ description
 #JNI files
 jni/boost
 jni/libiconv
+jni/opensslout
+jni/openssldir
+jni/openssl
 
 # other
 *.odg#

@@ -127,7 +127,8 @@ void traversal_algorithm::add_entry(node_id const& id, udp::endpoint addr, unsig
 
 	if (i == m_results.end() || (*i)->id() != id)
 	{
-		if (m_node.settings().restrict_search_ips)
+		if (m_node.settings().restrict_search_ips
+			&& !(flags & observer::flag_initial))
 		{
 			// don't allow multiple entries from IPs very close to each other
 			std::vector<observer_ptr>::iterator j = std::find_if(
@@ -364,7 +365,7 @@ void traversal_algorithm::status(dht_lookup& l)
 		observer& o = **i;
 		if (o.flags & observer::flag_queried)
 		{
-			last_sent = (std::min)(last_sent, total_seconds(now - o.sent()));
+			last_sent = (std::min)(last_sent, int(total_seconds(now - o.sent())));
 			if (o.has_short_timeout()) ++l.first_timeout;
 			continue;
 		}

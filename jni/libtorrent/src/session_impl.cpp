@@ -323,6 +323,7 @@ namespace aux {
 		TORRENT_SETTING(boolean, upnp_ignore_nonrouters)
  		TORRENT_SETTING(integer, send_buffer_low_watermark)
  		TORRENT_SETTING(integer, send_buffer_watermark)
+		TORRENT_SETTING(integer, send_buffer_watermark_factor)
 #ifndef TORRENT_NO_DEPRECATE
 		TORRENT_SETTING(boolean, auto_upload_slots)
 		TORRENT_SETTING(boolean, auto_upload_slots_rate_based)
@@ -618,6 +619,7 @@ namespace aux {
 		, m_upload_rate(peer_connection::upload_channel)
 #endif
 		, m_tracker_manager(*this, m_proxy)
+		, m_key(0)
 		, m_listen_port_retries(listen_port_range.second - listen_port_range.first)
 #if TORRENT_USE_I2P
 		, m_i2p_conn(m_io_service)
@@ -1063,7 +1065,6 @@ namespace aux {
 		// ---- generate a peer id ----
 		static seed_random_generator seeder;
 
-		m_key = random() + (random() << 15) + (random() << 30);
 		std::string print = cl_fprint.to_string();
 		TORRENT_ASSERT_VAL(print.length() <= 20, print.length());
 
@@ -1306,6 +1307,13 @@ namespace aux {
 			"\n\n", m_stats_logger);
 	}
 #endif
+
+	void session_impl::trigger_auto_manage()
+	{
+		// if this torrent was just paused
+		// we might have to resume some other auto-managed torrent
+		m_auto_manage_time_scaler = (std::min)(2, m_auto_manage_time_scaler);
+	}
 
 	void session_impl::start_session()
 	{
@@ -1790,12 +1798,18 @@ namespace aux {
 		}
 		m_listen_sockets.clear();
 		if (m_socks_listen_socket && m_socks_listen_socket->is_open())
-			m_socks_listen_socket->close();
+		{
+			m_socks_listen_socket->close(ec);
+			TORRENT_ASSERT(!ec);
+		}
 		m_socks_listen_socket.reset();
 
 #if TORRENT_USE_I2P
 		if (m_i2p_listen_socket && m_i2p_listen_socket->is_open())
-			m_i2p_listen_socket->close();
+		{
+			m_i2p_listen_socket->close(ec);
+			TORRENT_ASSERT(!ec);
+		}
 		m_i2p_listen_socket.reset();
 #endif
 
@@ -2469,8 +2483,30 @@ retry:
 	}
 
 #if TORRENT_USE_I2P
+	void session_impl::set_i2p_proxy(proxy_settings const& s)
+	{
+		// we need this socket to be open before we
+		// can make name lookups for trackers for instance.
+		// pause the session now and resume it once we've
+		// established the i2p SAM connection
+		m_i2p_conn.open(s, boost::bind(&session_impl::on_i2p_open, this, _1));
+		open_new_incoming_i2p_connection();
+	}
+
 	void session_impl::on_i2p_open(error_code const& ec)
 	{
+		if (ec)
+		{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+			char msg[200];
+			snprintf(msg, sizeof(msg), "i2p open failed (%d) %s", ec.value(), ec.message().c_str());
+			(*m_logger) << msg << "\n";
+#endif
+		}
+		// now that we have our i2p connection established
+		// it's OK to start torrents and use this socket to
+		// do i2p name lookups
+
 		open_new_incoming_i2p_connection();
 	}
 
@@ -2779,8 +2815,6 @@ retry:
 #endif
 			return;
 		}
-
-		TORRENT_ASSERT(endp.address() != address_v4::any());
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
 		(*m_logger) << time_now_string() << " <== INCOMING CONNECTION " << endp
@@ -3226,8 +3260,8 @@ retry:
 							int total_peers = num_peers[0][i] + num_peers[1][i];
 							// this are 64 bits since it's multiplied by the number
 							// of peers, which otherwise might overflow an int
-							boost::uint64_t rate = (std::max)(stat_rate[i], lower_limit[i]);
-							tcp_channel[i]->throttle(int(rate * num_peers[0][i] / total_peers));
+							boost::uint64_t rate = stat_rate[i];
+							tcp_channel[i]->throttle((std::max)(int(rate * num_peers[0][i] / total_peers), lower_limit[i]));
 						}
 					}
 				}
@@ -4899,8 +4933,12 @@ retry:
 	{
 		error_code ec;
 		torrent_handle handle = add_torrent(*params, ec);
-		m_alerts.post_alert(add_torrent_alert(handle, *params, ec));
+
 		delete params->resume_data;
+		delete params->file_priorities;
+		params->resume_data = NULL;
+		params->file_priorities = NULL;
+		m_alerts.post_alert(add_torrent_alert(handle, *params, ec));
 		delete params;
 	}
 

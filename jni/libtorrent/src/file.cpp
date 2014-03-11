@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2012, Arvid Norberg
+Copyright (c) 2003, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,16 @@ POSSIBILITY OF SUCH DAMAGE.
 /*
 	Physical file offset patch by Morten Husveit
 */
+
+#define _FILE_OFFSET_BITS 64
+#define _LARGE_FILES 1
+
+// on mingw this is necessary to enable 64-bit time_t, specifically used for
+// the stat struct. Without this, modification times returned by stat may be
+// incorrect and consistently fail resume data
+#ifndef __MINGW_USE_VC2005_COMPAT
+# define __MINGW_USE_VC2005_COMPAT
+#endif
 
 #include "libtorrent/pch.hpp"
 #include "libtorrent/config.hpp"
@@ -68,18 +78,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #else
 // posix part
 
-#define _FILE_OFFSET_BITS 64
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <fcntl.h> // for F_LOG2PHYS
 #include <sys/types.h>
 #include <errno.h>
 #include <dirent.h>
-#include <sys/statfs.h>
 
 #ifdef TORRENT_LINUX
 // linux specifics
 
+#include <sys/statfs.h>
+#include <sys/syscall.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #ifdef HAVE_LINUX_FIEMAP_H
@@ -111,7 +120,7 @@ static int my_fallocate(int fd, int mode, loff_t offset, loff_t len)
 
 #endif
 
-//#undef _FILE_OFFSET_BITS
+#undef _FILE_OFFSET_BITS
 
 // make sure the _FILE_OFFSET_BITS define worked
 // on this platform. It's supposed to make file
@@ -340,6 +349,7 @@ namespace libtorrent
 
 		// rely on default umask to filter x and w permissions
 		// for group and others
+		// TODO: copy the mode from the source file
 		int permissions = S_IRUSR | S_IWUSR
 			| S_IRGRP | S_IWGRP
 			| S_IROTH | S_IWOTH;
@@ -385,7 +395,7 @@ namespace libtorrent
 		{
 			while (*p != '/'
 				&& *p != '\0'
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 				&& *p != '\\'
 #endif
 				) ++p;
@@ -410,16 +420,33 @@ namespace libtorrent
 
 	std::string extension(std::string const& f)
 	{
-		char const* ext = strrchr(f.c_str(), '.');
-		if (ext == 0) return "";
-		return ext;
+		for (int i = f.size() - 1; i >= 0; --i)
+		{
+			if (f[i] == '/') break;
+#ifdef TORRENT_WINDOWS
+			if (f[i] == '\\') break;
+#endif
+			if (f[i] != '.') continue;
+			return f.substr(i);
+		}
+		return "";
 	}
 
 	void replace_extension(std::string& f, std::string const& ext)
 	{
-		char const* e = strrchr(f.c_str(), '.');
-		if (e == 0) f += '.';
-		else f.resize(e - f.c_str() + 1);
+		for (int i = f.size() - 1; i >= 0; --i)
+		{
+			if (f[i] == '/') break;
+#ifdef TORRENT_WINDOWS
+			if (f[i] == '\\') break;
+#endif
+
+			if (f[i] != '.') continue;
+
+			f.resize(i);
+			break;
+		}
+		f += '.';
 		f += ext;
 	}
 
@@ -427,7 +454,7 @@ namespace libtorrent
 	{
 		if (f.empty()) return false;
 
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 		// match \\ form
 		if (f == "\\\\") return true;
 		int i = 0;
@@ -504,7 +531,7 @@ namespace libtorrent
 		if (f.empty()) return "";
 		char const* first = f.c_str();
 		char const* sep = strrchr(first, '/');
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 		char const* altsep = strrchr(first, '\\');
 		if (sep == 0 || altsep > sep) sep = altsep;
 #endif
@@ -519,7 +546,7 @@ namespace libtorrent
 			{
 				--sep;
 				if (*sep == '/'
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 					|| *sep == '\\'
 #endif
 					)
@@ -538,7 +565,7 @@ namespace libtorrent
 		if (lhs.empty() || lhs == ".") return rhs;
 		if (rhs.empty() || rhs == ".") return lhs;
 
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 #define TORRENT_SEPARATOR "\\"
 		bool need_sep = lhs[lhs.size()-1] != '\\' && lhs[lhs.size()-1] != '/';
 #else
@@ -729,7 +756,7 @@ namespace libtorrent
 	bool is_complete(std::string const& f)
 	{
 		if (f.empty()) return false;
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+#ifdef TORRENT_WINDOWS
 		int i = 0;
 		// match the xx:\ or xx:/ form
 		while (f[i] && is_alpha(f[i])) ++i;
@@ -1018,11 +1045,8 @@ namespace libtorrent
 
 		if (mode & attribute_executable)
 			permissions |= S_IXGRP | S_IXOTH | S_IXUSR;
-#ifdef O_BINARY
-		static const int mode_array[] = {O_RDONLY | O_BINARY, O_WRONLY | O_CREAT | O_BINARY, O_RDWR | O_CREAT | O_BINARY};
-#else
+
 		static const int mode_array[] = {O_RDONLY, O_WRONLY | O_CREAT, O_RDWR | O_CREAT};
-#endif
 #ifdef O_DIRECT
 		static const int no_buffer_flag[] = {0, O_DIRECT};
 #else
@@ -1085,7 +1109,7 @@ namespace libtorrent
 				0, // start offset
 				0, // length (0 = until EOF)
 				getpid(), // owner
-				(mode & write_only) ? F_WRLCK : F_RDLCK, // lock type
+				short((mode & write_only) ? F_WRLCK : F_RDLCK), // lock type
 				SEEK_SET // whence
 			};
 			if (fcntl(m_fd, F_SETLK, &l) != 0)
@@ -1893,6 +1917,108 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 		return 0;
 	}
 
+#ifdef TORRENT_WINDOWS
+	bool get_manage_volume_privs()
+	{
+		typedef BOOL (WINAPI *OpenProcessToken_t)(
+			HANDLE ProcessHandle,
+			DWORD DesiredAccess,
+			PHANDLE TokenHandle);
+
+		typedef BOOL (WINAPI *LookupPrivilegeValue_t)(
+			LPCSTR lpSystemName,
+			LPCSTR lpName,
+			PLUID lpLuid);
+
+		typedef BOOL (WINAPI *AdjustTokenPrivileges_t)(
+			HANDLE TokenHandle,
+			BOOL DisableAllPrivileges,
+			PTOKEN_PRIVILEGES NewState,
+			DWORD BufferLength,
+			PTOKEN_PRIVILEGES PreviousState,
+			PDWORD ReturnLength);
+
+		static OpenProcessToken_t pOpenProcessToken = NULL;
+		static LookupPrivilegeValue_t pLookupPrivilegeValue = NULL;
+		static AdjustTokenPrivileges_t pAdjustTokenPrivileges = NULL;
+		static bool failed_advapi = false;
+
+		if (pOpenProcessToken == NULL && !failed_advapi)
+		{
+			HMODULE advapi = LoadLibraryA("advapi32");
+			if (advapi == NULL)
+			{
+				failed_advapi = true;
+				return false;
+			}
+			pOpenProcessToken = (OpenProcessToken_t)GetProcAddress(advapi, "OpenProcessToken");
+			pLookupPrivilegeValue = (LookupPrivilegeValue_t)GetProcAddress(advapi, "LookupPrivilegeValueA");
+			pAdjustTokenPrivileges = (AdjustTokenPrivileges_t)GetProcAddress(advapi, "AdjustTokenPrivileges");
+			if (pOpenProcessToken == NULL
+				|| pLookupPrivilegeValue == NULL
+				|| pAdjustTokenPrivileges == NULL)
+			{
+				failed_advapi = true;
+				return false;
+			}
+		}
+
+		HANDLE token;
+		if (!pOpenProcessToken(GetCurrentProcess()
+			, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token))
+			return false;
+
+		TOKEN_PRIVILEGES privs;
+		if (!pLookupPrivilegeValue(NULL, "SeManageVolumePrivilege"
+			, &privs.Privileges[0].Luid))
+		{
+			CloseHandle(token);
+			return false;
+		}
+
+		privs.PrivilegeCount = 1;
+		privs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+		bool ret = pAdjustTokenPrivileges(token, FALSE, &privs, 0, NULL, NULL)
+			&& GetLastError() == ERROR_SUCCESS;
+
+		CloseHandle(token);
+
+		return ret;
+	}
+
+	void set_file_valid_data(HANDLE f, boost::int64_t size)
+	{
+		static bool has_privs = get_manage_volume_privs();
+
+		typedef BOOL (WINAPI *SetFileValidData_t)(HANDLE, LONGLONG);
+		static SetFileValidData_t pSetFileValidData = NULL;
+		static bool failed_kernel32 = false;
+
+		if (pSetFileValidData == NULL && !failed_kernel32)
+		{
+			HMODULE k32 = LoadLibraryA("kernel32");
+			if (k32 == NULL)
+			{
+				failed_kernel32 = true;
+				return;
+			}
+			pSetFileValidData = (SetFileValidData_t)GetProcAddress(k32, "SetFileValidData");
+			if (pSetFileValidData == NULL)
+			{
+				failed_kernel32 = true;
+				return;
+			}
+		}
+
+		TORRENT_ASSERT(pSetFileValidData);
+
+		// we don't necessarily expect to have enough
+		// privilege to do this, so ignore errors.
+		pSetFileValidData(f, size);
+	}
+#endif
+
   	bool file::set_size(size_type s, error_code& ec)
   	{
   		TORRENT_ASSERT(is_open());
@@ -1942,6 +2068,10 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 					ec.assign(INVALID_SET_FILE_POINTER, get_system_category());
 					return false;
 				}
+
+				if ((m_open_mode & sparse) == 0)
+					set_file_valid_data(m_file_handle, s);
+
 				return true;
 			}
 
@@ -1976,51 +2106,34 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 				return false;
 			}
 		}
-
 		if ((m_open_mode & sparse) == 0)
 		{
-			typedef DWORD (WINAPI *GetCompressedFileSizeW_t)(LPCWSTR lpFileName, LPDWORD lpFileSizeHigh);
-			typedef BOOL (WINAPI *SetFileValidData_t)(HANDLE hFile, LONGLONG ValidDataLength);
-
-			static GetCompressedFileSizeW_t GetCompressedFileSizeW = NULL;
-			static SetFileValidData_t SetFileValidData = NULL;
-
-			static bool failed_kernel32 = false;
-
-			if ((GetCompressedFileSizeW == NULL) && !failed_kernel32)
+			// only allocate the space if the file
+			// is not fully allocated
+#if _WIN32_WINNT >= 0x501		
+			// TODO: it would be nice to load
+			// GetCompressedSize dynamically out of
+			// kernel32.dll
+			DWORD high_dword = 0;
+#if TORRENT_USE_WSTRING
+#define GetCompressedFileSize_ GetCompressedFileSizeW
+#else
+#define GetCompressedFileSize_ GetCompressedFileSizeA
+#endif
+			offs.LowPart = GetCompressedFileSize_(m_path.c_str(), &high_dword);
+			offs.HighPart = high_dword;
+			if (offs.LowPart == INVALID_FILE_SIZE)
 			{
-				HMODULE kernel32 = LoadLibraryA("kernel32.dll");
-				if (kernel32)
-				{
-					GetCompressedFileSizeW = (GetCompressedFileSizeW_t)GetProcAddress(kernel32, "GetCompressedFileSizeW");
-					SetFileValidData = (SetFileValidData_t)GetProcAddress(kernel32, "SetFileValidData");
-					if ((GetCompressedFileSizeW == NULL) || (SetFileValidData == NULL))
-					{ 
-						failed_kernel32 = true;
-					}
-				}
-				else
-				{
-					failed_kernel32 = true;
-				}
-			}
-
-			if (!failed_kernel32 && GetCompressedFileSizeW && SetFileValidData)
-			{
-				// only allocate the space if the file
-				// is not fully allocated
-				DWORD high_dword = 0;
-				offs.LowPart = GetCompressedFileSize(m_path.c_str(), &high_dword);
-				offs.HighPart = high_dword;
 				ec.assign(GetLastError(), get_system_category());
 				if (ec) return false;
-				if (offs.QuadPart != s)
-				{
-					// if the user has permissions, avoid filling
-					// the file with zeroes, but just fill it with
-					// garbage instead
-					SetFileValidData(m_file_handle, offs.QuadPart);
-				}
+			}
+			if (offs.QuadPart != s)
+#endif // _WIN32_WINNT >= 0x501
+			{
+				// if the user has permissions, avoid filling
+				// the file with zeroes, but just fill it with
+				// garbage instead
+				set_file_valid_data(m_file_handle, s);
 			}
 		}
 #else // NON-WINDOWS
@@ -2097,7 +2210,7 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 			// way. If fallocate failed with some other error, it
 			// probably means the user should know about it, error out
 			// and report it.
-			if (errno != ENOSYS && errno != EOPNOTSUPP && errno != EINVAL)
+			if (errno != ENOSYS && errno != EOPNOTSUPP)
 			{
 				ec.assign(errno, get_posix_category());
 				return false;

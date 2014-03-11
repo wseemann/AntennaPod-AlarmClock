@@ -398,6 +398,10 @@ namespace libtorrent
 		if (has_peer_choked()) p.flags |= peer_info::remote_choked;
 		if (support_extensions()) p.flags |= peer_info::supports_extensions;
 		if (is_outgoing()) p.flags |= peer_info::local_connection;
+#if TORRENT_USE_I2P
+		if (is_i2p(*get_socket())) p.flags |= peer_info::i2p_socket;
+#endif
+		if (is_utp(*get_socket())) p.flags |= peer_info::utp_socket;
 
 #ifndef TORRENT_DISABLE_ENCRYPTION
 		if (m_encrypted)
@@ -644,51 +648,6 @@ namespace libtorrent
 #endif
 	}
 
-	void bt_peer_connection::append_const_send_buffer(char const* buffer, int size)
-	{
-#ifndef TORRENT_DISABLE_ENCRYPTION
-		if (m_encrypted && m_rc4_encrypted)
-		{
-			// if we're encrypting this buffer, we need to make a copy
-			// since we'll mutate it
-			char* buf = (char*)malloc(size);
-			memcpy(buf, buffer, size);
-			bt_peer_connection::append_send_buffer(buf, size, boost::bind(&::free, _1));
-		}
-		else
-#endif
-		{
-			peer_connection::append_const_send_buffer(buffer, size);
-		}
-	}
-
-	void encrypt(char* buf, int len, void* userdata)
-	{
-		rc4_handler* rc4 = (rc4_handler*)userdata;
-		rc4->encrypt(buf, len);
-	}
-
-	void bt_peer_connection::send_buffer(char const* buf, int size, int flags
-			, void (*f)(char*, int, void*), void* ud)
-	{
-		TORRENT_ASSERT(f == 0);
-		TORRENT_ASSERT(ud == 0);
-		TORRENT_ASSERT(buf);
-		TORRENT_ASSERT(size > 0);
-		
-		void* userdata = 0;
-		void (*fun)(char*, int, void*) = 0;
-#ifndef TORRENT_DISABLE_ENCRYPTION
-		if (m_encrypted && m_rc4_encrypted)
-		{
-			fun = encrypt;
-			userdata = m_enc_handler.get();
-		}
-#endif
-		
-		peer_connection::send_buffer(buf, size, flags, fun, userdata);
-	}
-
 	int bt_peer_connection::get_syncoffset(char const* src, int src_size,
 		char const* target, int target_size) const
 	{
@@ -735,6 +694,53 @@ namespace libtorrent
 	}
 #endif // #ifndef TORRENT_DISABLE_ENCRYPTION
 	
+	void bt_peer_connection::append_const_send_buffer(char const* buffer, int size)
+	{
+#ifndef TORRENT_DISABLE_ENCRYPTION
+		if (m_encrypted && m_rc4_encrypted)
+		{
+			// if we're encrypting this buffer, we need to make a copy
+			// since we'll mutate it
+			char* buf = (char*)malloc(size);
+			memcpy(buf, buffer, size);
+			bt_append_send_buffer(buf, size, boost::bind(&::free, _1));
+		}
+		else
+#endif
+		{
+			peer_connection::append_const_send_buffer(buffer, size);
+		}
+	}
+
+#ifndef TORRENT_DISABLE_ENCRYPTION
+	void encrypt(char* buf, int len, void* userdata)
+	{
+		rc4_handler* rc4 = (rc4_handler*)userdata;
+		rc4->encrypt(buf, len);
+	}
+#endif
+
+	void bt_peer_connection::send_buffer(char const* buf, int size, int flags
+			, void (*f)(char*, int, void*), void* ud)
+	{
+		TORRENT_ASSERT(f == 0);
+		TORRENT_ASSERT(ud == 0);
+		TORRENT_ASSERT(buf);
+		TORRENT_ASSERT(size > 0);
+		
+		void* userdata = 0;
+		void (*fun)(char*, int, void*) = 0;
+#ifndef TORRENT_DISABLE_ENCRYPTION
+		if (m_encrypted && m_rc4_encrypted)
+		{
+			fun = encrypt;
+			userdata = m_enc_handler.get();
+		}
+#endif
+		
+		peer_connection::send_buffer(buf, size, flags, fun, userdata);
+	}
+
 	void bt_peer_connection::write_handshake()
 	{
 		INVARIANT_CHECK;
@@ -2345,7 +2351,7 @@ namespace libtorrent
 			send_buffer(msg, 13);
 		}
 
-		append_send_buffer(buffer.get(), r.length
+		bt_append_send_buffer(buffer.get(), r.length
 			, boost::bind(&session_impl::free_disk_buffer
 			, boost::ref(m_ses), _1));
 		buffer.release();

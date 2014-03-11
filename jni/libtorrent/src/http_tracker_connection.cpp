@@ -107,8 +107,7 @@ namespace libtorrent
 			std::size_t pos = url.find("announce");
 			if (pos == std::string::npos)
 			{
-				m_ios.post(boost::bind(&http_tracker_connection::fail_disp, self()
-					, error_code(errors::scrape_not_available)));
+				tracker_connection::fail(error_code(errors::scrape_not_available));
 				return;
 			}
 			url.replace(pos, 8, "scrape");
@@ -138,8 +137,8 @@ namespace libtorrent
 		{
 			char str[1024];
 			const bool stats = tracker_req().send_stats;
-			snprintf(str, sizeof(str), "&peer_id=%s&port=%d&uploaded=%"PRId64
-				"&downloaded=%"PRId64"&left=%"PRId64"&corrupt=%"PRId64"&redundant=%"PRId64
+			snprintf(str, sizeof(str), "&peer_id=%s&port=%d&uploaded=%" PRId64
+				"&downloaded=%" PRId64 "&left=%" PRId64 "&corrupt=%" PRId64 "&redundant=%" PRId64
 				"&compact=1&numwant=%d&key=%x&no_peer_id=1"
 				, escape_string((const char*)&tracker_req().pid[0], 20).c_str()
 				// the i2p tracker seems to verify that the port is not 0,

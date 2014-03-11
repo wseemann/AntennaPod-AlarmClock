@@ -1096,12 +1096,12 @@ namespace
 #if BOOST_VERSION >= 103500
 
 
-const char* upnp_error_category::name() const
+const char* upnp_error_category::name() const BOOST_SYSTEM_NOEXCEPT
 {
 	return "UPnP error";
 }
 
-std::string upnp_error_category::message(int ev) const
+std::string upnp_error_category::message(int ev) const BOOST_SYSTEM_NOEXCEPT
 {
 	int num_errors = sizeof(error_codes) / sizeof(error_codes[0]);
 	error_code_t* end = error_codes + num_errors;
@@ -1256,6 +1256,22 @@ void upnp::on_upnp_map_response(error_code const& e
 	if (!p.header_finished())
 	{
 		log("error while adding port map: incomplete http message", l);
+		next(d, mapping, l);
+		return;
+	}
+
+	std::string ct = p.header("content-type");
+	if (!ct.empty()
+		&& ct.find_first_of("text/xml") == std::string::npos
+		&& ct.find_first_of("text/soap+xml") == std::string::npos
+		&& ct.find_first_of("application/xml") == std::string::npos
+		&& ct.find_first_of("application/soap+xml") == std::string::npos
+		)
+	{
+		char msg[300];
+		snprintf(msg, sizeof(msg), "error while adding port map: invalid content-type, \"%s\". Expected text/xml or application/soap+xml"
+			, ct.c_str());
+		log(msg, l);
 		next(d, mapping, l);
 		return;
 	}

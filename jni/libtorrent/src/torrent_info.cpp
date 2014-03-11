@@ -308,6 +308,8 @@ namespace libtorrent
 			if (p->list_at(i)->type() != lazy_entry::string_t)
 				return false;
 			std::string path_element = p->list_at(i)->string_value();
+			if (path_element.empty())
+				path_element = "_";
 			if (!valid_path_element(path_element)) continue;
 			if (i == end - 1) *filename = p->list_at(i);
 			trim_path_element(path_element);
@@ -471,7 +473,7 @@ namespace libtorrent
 		}
 		v.resize(s);
 		if (s == 0) return 0;
-		file::iovec_t b = {&v[0], s};
+		file::iovec_t b = {&v[0], size_t(s) };
 		size_type read = f.readv(0, &b, 1, ec);
 		if (read != s) return -3;
 		if (ec) return -3;
@@ -1255,6 +1257,8 @@ namespace libtorrent
 		}
 		else if (url_seeds && url_seeds->type() == lazy_entry::list_t)
 		{
+			// only add a URL once
+			std::set<std::string> unique;
 			for (int i = 0, end(url_seeds->list_size()); i < end; ++i)
 			{
 				lazy_entry const* url = url_seeds->list_at(i);
@@ -1263,6 +1267,8 @@ namespace libtorrent
 				web_seed_entry ent(maybe_url_encode(url->string_value())
 					, web_seed_entry::url_seed);
 				if (m_multifile && ent.url[ent.url.size()-1] != '/') ent.url += '/';
+				if (unique.count(ent.url)) continue;
+				unique.insert(ent.url);
 				m_web_seeds.push_back(ent);
 			}
 		}
@@ -1276,12 +1282,16 @@ namespace libtorrent
 		}
 		else if (http_seeds && http_seeds->type() == lazy_entry::list_t)
 		{
+			// only add a URL once
+			std::set<std::string> unique;
 			for (int i = 0, end(http_seeds->list_size()); i < end; ++i)
 			{
 				lazy_entry const* url = http_seeds->list_at(i);
 				if (url->type() != lazy_entry::string_t || url->string_length() == 0) continue;
-				m_web_seeds.push_back(web_seed_entry(maybe_url_encode(url->string_value())
-					, web_seed_entry::http_seed));
+				std::string u = maybe_url_encode(url->string_value());
+				if (unique.count(u)) continue;
+				unique.insert(u);
+				m_web_seeds.push_back(web_seed_entry(u, web_seed_entry::http_seed));
 			}
 		}
 

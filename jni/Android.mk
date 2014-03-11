@@ -24,12 +24,40 @@ LOCAL_EXPORT_LDLIBS := -lz
 
 include $(BUILD_STATIC_LIBRARY) 
 
+#========================================================== libcrypto
+
+include $(CLEAR_VARS) 
+
+LOCAL_MODULE := libcrypto 
+LOCAL_SRC_FILES := opensslout/lib/libcrypto.a
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/opensslout/include
+LOCAL_EXPORT_LDLIBS := -lz 
+
+include $(PREBUILT_STATIC_LIBRARY) 
+
+#========================================================== libssl
+
+include $(CLEAR_VARS) 
+
+LOCAL_MODULE := libssl 
+LOCAL_SRC_FILES := opensslout/lib/libssl.a
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/opensslout/include
+LOCAL_EXPORT_LDLIBS := -lz 
+
+LOCAL_STATIC_LIBRARIES := libcrypto
+
+include $(PREBUILT_STATIC_LIBRARY) 
+
+#==========================================================
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := boost_regex
-LOCAL_SRC_FILES := boost/lib/libboost_regex-gcc-mt.a
+LOCAL_SRC_FILES := boost/lib/libboost_regex-gcc-mt-1_53.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/boost/include/boost-1_53
 LOCAL_EXPORT_LDLIBS := -lz
+
+LOCAL_STATIC_LIBRARIES := libcrypto \
+	libssl \
 
 include $(PREBUILT_STATIC_LIBRARY)
 
@@ -54,9 +82,12 @@ include $(PREBUILT_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := boost_system
-LOCAL_SRC_FILES := boost/lib/libboost_system-gcc-mt.a
+LOCAL_SRC_FILES := boost/lib/libboost_system-gcc-mt-1_53.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/boost/include/boost-1_53
 LOCAL_EXPORT_LDLIBS := -lz
+
+LOCAL_STATIC_LIBRARIES := libcrypto \
+	libssl \
 
 include $(PREBUILT_STATIC_LIBRARY)
 
@@ -64,9 +95,12 @@ include $(PREBUILT_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := boost_thread
-LOCAL_SRC_FILES := boost/lib/libboost_thread-gcc-mt.a
+LOCAL_SRC_FILES := boost/lib/libboost_thread-gcc-mt-1_53.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/boost/include/boost-1_53
 LOCAL_EXPORT_LDLIBS := -lz
+
+LOCAL_STATIC_LIBRARIES := libcrypto \
+	libssl \
 
 include $(PREBUILT_STATIC_LIBRARY)
 
@@ -79,6 +113,8 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 #include $(PREBUILT_STATIC_LIBRARY)
 
+
+
 include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cpp
 LOCAL_MODULE := libtorrent
@@ -87,26 +123,27 @@ LOCAL_LDLIBS += -llog \
 	-lc \
 	-lm \
 	-lz \
-	-L$(NDK_R8)/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi \
-	-lgnustl_static
+	-L$(NDK_R9C)/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/libtorrent/include
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/boost/include/boost-1_53
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/libiconv/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/opensslout/include
 
 LOCAL_STATIC_LIBRARIES := libiconv \
+	libcrypto \
+	libssl \
 	boost_regex \
 	boost_system \
 	boost_thread \
 
 LOCAL_CFLAGS := -DTORRENT_DISABLE_GEO_IP \
-	-DTORRENT_DISABLE_ENCRYPTION \
+	-DTORRENT_USE_OPENSSL \
 	-g \
 	-D_FILE_OFFSET_BITS=64 \
 	-DBOOST_FILESYSTEM_NARROW_ONLY \
 	-DBOOST_NO_INTRINSIC_WCHAR_T \
 	-DTORRENT_HAS_FALLOCATE=0 \
-	-DTORRENT_DISABLE_ENCRYPTION \
 	-DBOOST_DISABLE_ASSERTS \
 	-DTORRENT_USE_ICONV=0 \
 	-DTORRENT_USE_MEMALIGN=1 \
@@ -127,7 +164,7 @@ LOCAL_CFLAGS := -DTORRENT_DISABLE_GEO_IP \
 	-D__ANDROID__ \
 	-nostdlib \
 	-fno-short-enums \
-	-march=armv5te \
+	-march=armv7 \
 	-mtune=xscale \
 	-msoft-float \
 	-fomit-frame-pointer \
@@ -233,70 +270,6 @@ LOCAL_SRC_FILES := de_danoeh_antennapod_bittorrent_Session.cpp \
 	libtorrent/src/web_connection_base.cpp \
 	libtorrent/src/web_peer_connection.cpp \
 
-#LOCAL_SRC_FILES := libtorrent.cpp \
-	libtorrent/src/alert.cpp \
-	libtorrent/src/allocator.cpp \
-	libtorrent/src/assert.cpp \
-	libtorrent/src/broadcast_socket.cpp \
-	libtorrent/src/bt_peer_connection.cpp \
-	libtorrent/src/connection_queue.cpp \
-	libtorrent/src/ConvertUTF.cpp \
-	libtorrent/src/create_torrent.cpp \
-	libtorrent/src/disk_buffer_holder.cpp \
-	libtorrent/src/disk_io_thread.cpp \
-	libtorrent/src/entry.cpp \
-	libtorrent/src/enum_net.cpp \
-	libtorrent/src/error_code.cpp \
-	libtorrent/src/escape_string.cpp \
-	libtorrent/src/file.cpp \
-	libtorrent/src/file_pool.cpp \
-	libtorrent/src/file_storage.cpp \
-	libtorrent/src/gzip.cpp \
-	libtorrent/src/http_connection.cpp \
-	libtorrent/src/http_parser.cpp \
-	libtorrent/src/http_seed_connection.cpp \
-	libtorrent/src/http_stream.cpp \
-	libtorrent/src/http_tracker_connection.cpp \
-	libtorrent/src/identify_client.cpp \
-	libtorrent/src/instantiate_connection.cpp \
-	libtorrent/src/ip_filter.cpp \
-	libtorrent/src/kademlia/closest_nodes.cpp \
-	libtorrent/src/kademlia/dht_tracker.cpp \
-	libtorrent/src/kademlia/find_data.cpp \
-	libtorrent/src/kademlia/node.cpp \
-	libtorrent/src/kademlia/node_id.cpp \
-	libtorrent/src/kademlia/refresh.cpp \
-	libtorrent/src/kademlia/routing_table.cpp \
-	libtorrent/src/kademlia/rpc_manager.cpp \
-	libtorrent/src/kademlia/traversal_algorithm.cpp \
-	libtorrent/src/lazy_bdecode.cpp \
-	libtorrent/src/logger.cpp \
-	libtorrent/src/lsd.cpp \
-	libtorrent/src/lt_trackers.cpp \
-	libtorrent/src/magnet_uri.cpp \
-	libtorrent/src/metadata_transfer.cpp \
-	libtorrent/src/natpmp.cpp \
-	libtorrent/src/parse_url.cpp \
-	libtorrent/src/pe_crypto.cpp \
-	libtorrent/src/peer_connection.cpp \
-	libtorrent/src/piece_picker.cpp \
-	libtorrent/src/policy.cpp \
-	libtorrent/src/session.cpp \
-	libtorrent/src/session_impl.cpp \
-	libtorrent/src/sha1.cpp \
-	libtorrent/src/smart_ban.cpp \
-	libtorrent/src/socks5_stream.cpp \
-	libtorrent/src/stat.cpp \
-	libtorrent/src/storage.cpp \
-	libtorrent/src/torrent.cpp \
-	libtorrent/src/torrent_handle.cpp \
-	libtorrent/src/torrent_info.cpp \
-	libtorrent/src/tracker_manager.cpp \
-	libtorrent/src/udp_socket.cpp \
-	libtorrent/src/udp_tracker_connection.cpp \
-	libtorrent/src/upnp.cpp \
-	libtorrent/src/ut_metadata.cpp \
-	libtorrent/src/ut_pex.cpp \
-	libtorrent/src/web_peer_connection.cpp \
+
 
 include $(BUILD_SHARED_LIBRARY)

@@ -107,6 +107,8 @@ namespace libtorrent
 
 		set.alert_queue_size = 100;
 
+		set.max_allowed_in_request_queue = 100;
+
 		// setting this to a low limit, means more
 		// peers are more likely to request from the
 		// same piece. Which means fewer partial
@@ -185,6 +187,9 @@ namespace libtorrent
 		// don't throttle TCP, assume there is
 		// plenty of bandwidth
 		set.mixed_mode_algorithm = session_settings::prefer_tcp;
+
+		set.max_allowed_in_request_queue = 2000;
+		set.max_out_request_queue = 1000;
 
 		// we will probably see a high rate of alerts, make it less
 		// likely to loose alerts
@@ -619,6 +624,7 @@ namespace libtorrent
 	{
 		add_torrent_params* p = new add_torrent_params(params);
 		if (params.resume_data) p->resume_data = new std::vector<char>(*params.resume_data);
+		if (params.file_priorities) p->file_priorities = new std::vector<boost::uint8_t>(*params.file_priorities);
 		TORRENT_ASYNC_CALL1(async_add_torrent, p);
 	}
 
@@ -1122,8 +1128,8 @@ namespace libtorrent
 		, piece_timeout(20)
 		, request_timeout(50)
 		, request_queue_time(3)
-		, max_allowed_in_request_queue(250)
-		, max_out_request_queue(200)
+		, max_allowed_in_request_queue(500)
+		, max_out_request_queue(500)
 		, whole_pieces_threshold(20)
 		, peer_timeout(120)
 		, urlseed_timeout(20)

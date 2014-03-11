@@ -169,8 +169,13 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 		if (ps->type == proxy_settings::http_pw)
 			APPEND_FMT1("Proxy-Authorization: Basic %s\r\n", base64encode(
 				ps->username + ":" + ps->password).c_str());
+
 		hostname = ps->hostname;
 		port = ps->port;
+
+		APPEND_FMT1("Host: %s", hostname.c_str());
+		if (port != default_port) APPEND_FMT1(":%d\r\n", port);
+		else APPEND_FMT("\r\n");
 	}
 	else
 	{
@@ -665,6 +670,8 @@ void http_connection::on_write(error_code const& e)
 		return;
 	}
 
+	if (m_abort) return;
+
 	std::string().swap(sendbuffer);
 	m_recvbuffer.resize(4096);
 
@@ -699,6 +706,7 @@ void http_connection::on_read(error_code const& e
 #if defined TORRENT_ASIO_DEBUGGING
 	complete_async("http_connection::on_read");
 #endif
+
 	if (m_rate_limit)
 	{
 		m_download_quota -= bytes_transferred;
@@ -706,6 +714,8 @@ void http_connection::on_read(error_code const& e
 	}
 
 	if (e == asio::error::operation_aborted) return;
+
+	if (m_abort) return;
 
 	// keep ourselves alive even if the callback function
 	// deletes this object

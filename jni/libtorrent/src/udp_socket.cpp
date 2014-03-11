@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/socket_io.hpp"
 #include "libtorrent/error.hpp"
 #include "libtorrent/string_util.hpp" // for allocate_string_copy
+#include "libtorrent/broadcast_socket.hpp" // for is_any
 #include <stdlib.h>
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
@@ -339,14 +340,14 @@ void udp_socket::on_read(udp::socket* s, error_code const& e, std::size_t bytes_
 
 		if (m_abort) return;
 
-#if defined TORRENT_ASIO_DEBUGGING
-		add_outstanding_async("udp_socket::on_read");
-#endif
 #if TORRENT_USE_IPV6
 		if (s == &m_ipv6_sock && num_outstanding() == 0)
 		{
 			maybe_realloc_buffers(2);
 			if (m_abort) return;
+#if defined TORRENT_ASIO_DEBUGGING
+			add_outstanding_async("udp_socket::on_read");
+#endif
 			++m_v6_outstanding;
 			s->async_receive_from(asio::buffer(m_v6_buf, m_v6_buf_size)
 				, m_v6_ep, boost::bind(&udp_socket::on_read, this, s, _1, _2));
@@ -357,6 +358,9 @@ void udp_socket::on_read(udp::socket* s, error_code const& e, std::size_t bytes_
 		{
 			maybe_realloc_buffers(1);
 			if (m_abort) return;
+#if defined TORRENT_ASIO_DEBUGGING
+			add_outstanding_async("udp_socket::on_read");
+#endif
 			++m_v4_outstanding;
 			s->async_receive_from(asio::buffer(m_v4_buf, m_v4_buf_size)
 				, m_v4_ep, boost::bind(&udp_socket::on_read, this, s, _1, _2));
@@ -652,14 +656,19 @@ void udp_socket::bind(udp::endpoint const& ep, error_code& ec)
 				, _1, _2));
 		}
 	}
+
 #if TORRENT_USE_IPV6
-	else
+	if (supports_ipv6() && (ep.address().is_v6() || is_any(ep.address())))
 	{
+		udp::endpoint ep6 = ep;
+		if (is_any(ep.address())) ep6.address(address_v6::any());
+		m_ipv6_sock.open(udp::v6(), ec);
+		if (ec) return;
 #ifdef IPV6_V6ONLY
 		m_ipv6_sock.set_option(v6only(true), ec);
-		if (ec) return;
+		ec.clear();
 #endif
-		m_ipv6_sock.bind(ep, ec);
+		m_ipv6_sock.bind(ep6, ec);
 		if (ec) return;
 		if (m_v6_outstanding == 0)
 		{
@@ -723,6 +732,7 @@ void udp_socket::bind(int port)
 #endif
 #ifdef IPV6_V6ONLY
 		m_ipv6_sock.set_option(v6only(true), ec);
+		ec.clear();
 #endif
 		m_ipv6_sock.bind(udp::endpoint(address_v6::any(), port), ec);
 

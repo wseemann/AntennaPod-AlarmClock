@@ -1,0 +1,74 @@
+Binary files libtorrent-rasterbar-0.16.15/.DS_Store and libtorrent/.DS_Store differ
+diff -rupN libtorrent-rasterbar-0.16.15/include/libtorrent/config.hpp libtorrent/include/libtorrent/config.hpp
+--- libtorrent-rasterbar-0.16.15/include/libtorrent/config.hpp	2014-02-15 19:09:01.000000000 +0100
++++ libtorrent/include/libtorrent/config.hpp	2014-03-11 14:52:32.000000000 +0100
+@@ -192,7 +192,7 @@ POSSIBILITY OF SUCH DAMAGE.
+ #endif
+ #endif
+ #define TORRENT_HAS_FALLOCATE 0
+-#define TORRENT_USE_IFADDRS 1
++#define TORRENT_USE_IFADDRS 0
+ #define TORRENT_USE_SYSCTL 1
+ #define TORRENT_USE_IFCONF 1
+ 
+@@ -200,11 +200,11 @@ POSSIBILITY OF SUCH DAMAGE.
+ // ==== LINUX ===
+ #elif defined __linux__
+ #define TORRENT_LINUX
+-#define TORRENT_USE_IFADDRS 1
++#define TORRENT_USE_IFADDRS 0
+ #define TORRENT_USE_NETLINK 1
+ #define TORRENT_USE_IFCONF 1
+ #define TORRENT_HAS_SALEN 0
+-#define TORRENT_USE_POSIX_MEMALIGN 1
++#define TORRENT_USE_POSIX_MEMALIGN 0
+ #if __amd64__ || __i386__
+ #define TORRENT_USE_EXECINFO 1
+ #endif
+diff -rupN libtorrent-rasterbar-0.16.15/src/file.cpp libtorrent/src/file.cpp
+--- libtorrent-rasterbar-0.16.15/src/file.cpp	2014-02-15 19:09:01.000000000 +0100
++++ libtorrent/src/file.cpp	2014-03-11 14:24:44.000000000 +0100
+@@ -87,7 +87,8 @@ POSSIBILITY OF SUCH DAMAGE.
+ #ifdef TORRENT_LINUX
+ // linux specifics
+ 
+-#include <sys/statvfs.h>
++#include <sys/statfs.h>
++#include <sys/syscall.h>
+ #include <sys/ioctl.h>
+ #include <linux/types.h>
+ #ifdef HAVE_LINUX_FIEMAP_H
+@@ -126,7 +127,7 @@ static int my_fallocate(int fd, int mode
+ // related functions support 64-bit offsets.
+ // this test makes sure lseek() returns a type
+ // at least 64 bits wide
+-BOOST_STATIC_ASSERT(sizeof(lseek(0, 0, 0)) >= 8);
++//BOOST_STATIC_ASSERT(sizeof(lseek(0, 0, 0)) >= 8);
+ 
+ #endif // posix part
+ 
+@@ -1168,8 +1169,8 @@ namespace libtorrent
+ #if defined TORRENT_LINUX
+ 		if (m_sector_size == 0)
+ 		{
+-			struct statvfs fs;
+-			if (fstatvfs(m_fd, &fs) == 0)
++			struct statfs fs;
++			if (fstatfs(m_fd, &fs) == 0)
+ 				m_sector_size = fs.f_bsize;
+ 			else
+ 				m_sector_size = 4096;
+diff -rupN libtorrent-rasterbar-0.16.15/src/utp_stream.cpp libtorrent/src/utp_stream.cpp
+--- libtorrent-rasterbar-0.16.15/src/utp_stream.cpp	2014-02-15 19:09:01.000000000 +0100
++++ libtorrent/src/utp_stream.cpp	2014-03-11 14:14:48.000000000 +0100
+@@ -2873,8 +2873,8 @@ void utp_socket_impl::do_ledbat(int acke
+ 	}
+ 
+ 	// make sure we don't wrap the cwnd
+-	if (scaled_gain >= INT64_MAX - m_cwnd)
+-		scaled_gain = INT64_MAX - m_cwnd - 1;
++	if (scaled_gain >= INT_MAX - m_cwnd)
++		scaled_gain = INT_MAX - m_cwnd - 1;
+ 
+ 	if (scaled_gain > 0 && !m_cwnd_full
+ 		&& m_last_cwnd_hit + milliseconds(50) < now)

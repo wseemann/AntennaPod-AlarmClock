@@ -1180,7 +1180,8 @@ namespace libtorrent
 		pause();
 	}
 
-	void torrent::on_disk_read_complete(int ret, disk_io_job const& j, peer_request r, read_piece_struct* rp)
+	void torrent::on_disk_read_complete(int ret, disk_io_job const& j
+		, peer_request r, read_piece_struct* rp)
 	{
 		TORRENT_ASSERT(m_ses.is_network_thread());
 
@@ -2279,6 +2280,15 @@ namespace libtorrent
 			return;
 		}
 
+		// if we're not allowing peers, there's no point in announcing
+		if (e != tracker_request::stopped && !m_allow_peers)
+		{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
+			debug_log("*** announce_with_tracker: event != stopped && !m_allow_peers");
+#endif
+			return;
+		}
+
 		TORRENT_ASSERT(m_allow_peers || e == tracker_request::stopped);
 
 		if (e == tracker_request::none && is_finished() && !is_seed())
@@ -2328,7 +2338,10 @@ namespace libtorrent
 		else
 #endif
 		req.listen_port = m_ses.listen_port();
-		req.key = m_ses.m_key;
+		if (m_ses.m_key)
+			req.key = m_ses.m_key;
+		else
+			req.key = tracker_key();
 
 		ptime now = time_now_hires();
 
@@ -2344,8 +2357,7 @@ namespace libtorrent
 		{
 			announce_entry& ae = m_trackers[i];
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[1000];
-			snprintf(msg, sizeof(msg), "*** announce with tracker: considering \"%s\" "
+			debug_log("*** announce with tracker: considering \"%s\" "
 				"[ announce_to_all_tiers: %d announce_to_all_trackers: %d"
 				" i->tier: %d tier: %d "
 				" is_working: %d fails: %d fail_limit: %d updating: %d"
@@ -2354,7 +2366,6 @@ namespace libtorrent
 				, settings().announce_to_all_trackers
 				, ae.tier, tier, ae.is_working(), ae.fails, ae.fail_limit
 				, ae.updating, ae.can_announce(now, is_seed()), sent_announce);
-			debug_log(msg);
 #endif
 			// if trackerid is not specified for tracker use default one, probably set explicitly
 			req.trackerid = ae.trackerid.empty() ? m_trackerid : ae.trackerid;
@@ -3709,6 +3720,18 @@ namespace libtorrent
 		return m_username + ":" + m_password;
 	}
 
+	boost::uint32_t torrent::tracker_key() const
+	{
+		uintptr_t self = (uintptr_t)this;
+		uintptr_t ses = (uintptr_t)&m_ses;
+		sha1_hash h = hasher((char*)&self, sizeof(self))
+			.update((char*)&m_storage, sizeof(m_storage))
+			.update((char*)&ses, sizeof(ses))
+			.final();
+		unsigned char const* ptr = &h[0];
+		return detail::read_uint32(ptr);
+	}
+
 	void torrent::set_piece_deadline(int piece, int t, int flags)
 	{
 		if (m_abort)
@@ -4276,14 +4299,14 @@ namespace libtorrent
 		}
 	}
 
-	void torrent::add_tracker(announce_entry const& url)
+	bool torrent::add_tracker(announce_entry const& url)
 	{
 		std::vector<announce_entry>::iterator k = std::find_if(m_trackers.begin()
 			, m_trackers.end(), boost::bind(&announce_entry::url, _1) == url.url);
 		if (k != m_trackers.end()) 
 		{
 			k->source |= url.source;
-			return;
+			return false;
 		}
 		k = std::upper_bound(m_trackers.begin(), m_trackers.end(), url
 			, boost::bind(&announce_entry::tier, _1) < boost::bind(&announce_entry::tier, _2));
@@ -4291,6 +4314,7 @@ namespace libtorrent
 		k = m_trackers.insert(k, url);
 		if (k->source == 0) k->source = announce_entry::source_client;
 		if (!m_trackers.empty()) announce_with_tracker();
+		return true;
 	}
 
 	bool torrent::choke_peer(peer_connection& c)
@@ -6184,7 +6208,8 @@ namespace libtorrent
 
 		state_updated();
 
-		m_completed_time = time(0);
+		if (m_completed_time == 0)
+			m_completed_time = time(0);
 
 		// disconnect all seeds
 		if (settings().close_redundant_connections)
@@ -7153,7 +7178,10 @@ namespace libtorrent
 		m_graceful_pause_mode = graceful;
 
 		if (!m_ses.is_paused() || (prev_graceful && !m_graceful_pause_mode))
+		{
 			do_pause();
+			m_ses.trigger_auto_manage();
+		}
 	}
 
 	void torrent::do_pause()
@@ -7243,10 +7271,6 @@ namespace libtorrent
 			set_state(torrent_status::queued_for_checking);
 			TORRENT_ASSERT(!m_queued_for_checking);
 		}
-
-		// if this torrent was just paused
-		// we might have to resume some other auto-managed torrent
-		m_ses.m_auto_manage_time_scaler = 2;
 	}
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING || defined TORRENT_LOGGING
@@ -7592,7 +7616,7 @@ namespace libtorrent
 			set_upload_mode(false);
 		}
 
-		if (is_paused())
+		if (is_paused() && !m_graceful_pause_mode)
 		{
 			// let the stats fade out to 0
 			accumulator += m_stat;

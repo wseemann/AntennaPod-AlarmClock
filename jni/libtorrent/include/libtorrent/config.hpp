@@ -49,7 +49,16 @@ POSSIBILITY OF SUCH DAMAGE.
 	build, to automatically apply these defines
 #endif
 
+#if !defined _MSC_VER || _MSC_VER >= 1600
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS 1
+#endif
 #include <stdint.h> // for INT64_MAX
+#else
+#if !defined INT64_MAX
+#define INT64_MAX 0x7fffffffffffffffLL
+#endif
+#endif
 
 #ifndef _MSC_VER
 #ifndef __STDC_FORMAT_MACROS
@@ -183,7 +192,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif
 #define TORRENT_HAS_FALLOCATE 0
-#define TORRENT_USE_IFADDRS 1
+#define TORRENT_USE_IFADDRS 0
 #define TORRENT_USE_SYSCTL 1
 #define TORRENT_USE_IFCONF 1
 
@@ -205,8 +214,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_MINGW
 #define TORRENT_WINDOWS
 #ifndef TORRENT_USE_ICONV
-#define TORRENT_USE_ICONV 0
-#define TORRENT_USE_LOCALE 1
+# define TORRENT_USE_ICONV 0
+# define TORRENT_USE_LOCALE 1
 #endif
 #define TORRENT_USE_RLIMIT 0
 #define TORRENT_USE_NETLINK 0
@@ -214,7 +223,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_HAS_SALEN 0
 #define TORRENT_USE_GETIPFORWARDTABLE 1
 #ifndef TORRENT_USE_UNC_PATHS
-#define TORRENT_USE_UNC_PATHS 1
+# define TORRENT_USE_UNC_PATHS 1
 #endif
 
 // ==== WINDOWS ===
@@ -515,6 +524,7 @@ inline int snprintf(char* buf, int len, char const* fmt, ...)
 #define TORRENT_CATCH(x) catch(x)
 #define TORRENT_DECLARE_DUMMY(x, y)
 #endif // BOOST_NO_EXCEPTIONS
+
 
 #endif // TORRENT_CONFIG_HPP_INCLUDED
 

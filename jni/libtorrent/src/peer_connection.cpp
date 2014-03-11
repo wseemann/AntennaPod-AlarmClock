@@ -241,14 +241,19 @@ namespace libtorrent
 #endif
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING
 		error_code ec;
-		m_logger = m_ses.create_log(m_remote.address().to_string(ec) + "_"
-			+ to_string(m_remote.port()).elems, m_ses.listen_port());
+		tcp::endpoint local_ep = m_socket->local_endpoint(ec);
+		m_logger = m_ses.create_log(
+			"[" + local_ep.address().to_string(ec) + "#"
+			+ to_string(local_ep.port()).elems + "]-"
+			"[" + m_remote.address().to_string(ec) + "#"
+			+ to_string(m_remote.port()).elems + "]"
+			, m_ses.listen_port());
 		peer_log("%s [ ep: %s type: %s seed: %d p: %p local: %s]"
 			, m_outgoing ? ">>> OUTGOING_CONNECTION" : "<<< INCOMING CONNECTION"
 			, print_endpoint(m_remote).c_str()
 			, m_socket->type_name()
 			, m_peer_info ? m_peer_info->seed : 0, m_peer_info
-			, print_endpoint(m_socket->local_endpoint(ec)).c_str());
+			, print_endpoint(local_ep).c_str());
 #endif
 #ifdef TORRENT_DEBUG
 		piece_failed = false;
@@ -391,13 +396,18 @@ namespace libtorrent
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING
 		error_code ec;
 		TORRENT_ASSERT(m_socket->remote_endpoint(ec) == m_remote || ec);
-		m_logger = m_ses.create_log(remote().address().to_string(ec) + "_"
-			+ to_string(remote().port()).elems, m_ses.listen_port());
+		tcp::endpoint local_ep = m_socket->local_endpoint(ec);
+		m_logger = m_ses.create_log(
+			"[" + local_ep.address().to_string(ec) + "#"
+			+ to_string(local_ep.port()).elems + "]-"
+			"[" + m_remote.address().to_string(ec) + "#"
+			+ to_string(m_remote.port()).elems + "]"
+			, m_ses.listen_port());
 		peer_log("%s [ ep: %s type: %s local: %s]"
 			, m_outgoing ? ">>> OUTGOING_CONNECTION" : "<<< INCOMING CONNECTION"
 			, print_endpoint(m_remote).c_str()
 			, m_socket->type_name()
-			, print_endpoint(m_socket->local_endpoint(ec)).c_str());
+			, print_endpoint(local_ep).c_str());
 #endif
 		
 #ifndef TORRENT_DISABLE_GEO_IP
@@ -621,7 +631,6 @@ namespace libtorrent
 				disconnect(ec);
 				return;
 			}
-			TORRENT_ASSERT(m_remote.address() != address_v4::any());
 			if (m_remote.address().is_v4())
 			{
 				m_socket->set_option(type_of_service(m_ses.settings().peer_tos), ec);
@@ -1986,7 +1995,7 @@ namespace libtorrent
 		// peer has
 		// if we're a seed, we don't keep track of piece availability
 		bool interesting = false;
-		if (!t->is_upload_only())
+		if (!t->is_seed())
 		{
 			t->peer_has(bits);
 
@@ -4740,10 +4749,11 @@ namespace libtorrent
 			, channel == upload_channel ? ">>>" : "<<<", amount);
 #endif
 
-		TORRENT_ASSERT(amount > 0);
+		TORRENT_ASSERT(amount > 0 || is_disconnecting());
 		m_quota[channel] += amount;
 		TORRENT_ASSERT(m_channel_state[channel] & peer_info::bw_limit);
 		m_channel_state[channel] &= ~peer_info::bw_limit;
+		if (is_disconnecting()) return;
 		if (channel == upload_channel)
 		{
 			setup_send();
@@ -5797,6 +5807,16 @@ namespace libtorrent
 		TORRENT_ASSERT(m_upload_limit >= 0);
 		TORRENT_ASSERT(m_download_limit >= 0);
 
+		// if we're waiting for bandwidth, we should be in the
+		// bandwidth manager's queue
+		if (!m_disconnecting)
+		{
+			if (m_channel_state[0] & peer_info::bw_limit)
+				TORRENT_ASSERT(m_ses.m_upload_rate.is_queued(this));
+			if (m_channel_state[1] & peer_info::bw_limit)
+				TORRENT_ASSERT(m_ses.m_download_rate.is_queued(this));
+		}
+
 		boost::shared_ptr<torrent> t = m_torrent.lock();
 
 		if (!m_disconnect_started && m_initialized)
@@ -5913,7 +5933,7 @@ namespace libtorrent
 				TORRENT_ASSERT(m_disconnect_started);
 		}
 
-		if (!m_disconnect_started && m_initialized)
+		if (!m_disconnect_started && m_initialized && m_ses.settings().close_redundant_connections)
 		{
 			// none of this matters if we're disconnecting anyway
 			if (t->is_upload_only())

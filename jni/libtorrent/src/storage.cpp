@@ -423,6 +423,8 @@ namespace libtorrent
 	{
 		m_allocate_files = allocate_files;
 		error_code ec;
+		m_file_created.resize(files().num_files(), false);
+
 		// first, create all missing directories
 		std::string last_path;
 		for (file_storage::iterator file_iter = files().begin(),
@@ -448,12 +450,10 @@ namespace libtorrent
 				break;
 			}
 
-			// ec is either ENOENT or the file existed and s is valid
-			// allocate file only if it is not exist and (allocate_files == true)
 			// if the file already exists, but is larger than what
-			// it's supposed to be, also truncate it
+			// it's supposed to be, truncate it
 			// if the file is empty, just create it either way.
-			if ((ec && allocate_files) || (!ec && s.file_size > file_iter->size) || file_iter->size == 0)
+			if ((!ec && s.file_size > file_iter->size) || file_iter->size == 0)
 			{
 				std::string dir = parent_path(file_path);
 
@@ -805,7 +805,15 @@ namespace libtorrent
 			{
 				error_code ec;
 				recursive_copy(old_path, new_path, ec);
-				if (ec)
+				if (ec == boost::system::errc::no_such_file_or_directory)
+				{
+					// it's a bit weird that rename() would not return
+					// ENOENT, but the file still wouldn't exist. But,
+					// in case it does, we're done.
+					ec.clear();
+					break;
+				}
+				else if (ec)
 				{
 					set_error(old_path, ec);
 					ret = false;
@@ -1191,7 +1199,8 @@ ret:
 
 			error_code ec;
 			file_handle = open_file(file_iter, op.mode, ec);
-			if (((op.mode & file::rw_mask) == file::read_write) && ec == boost::system::errc::no_such_file_or_directory)
+			if (((op.mode & file::rw_mask) != file::read_only)
+				&& ec == boost::system::errc::no_such_file_or_directory)
 			{
 				// this means the directory the file is in doesn't exist.
 				// so create it
@@ -1211,6 +1220,25 @@ ret:
 				return -1;
 			}
 
+			// if the file has priority 0, don't allocate it
+			int file_index = files().file_index(*file_iter);
+			if (m_allocate_files && (op.mode & file::rw_mask) != file::read_only
+				&& (m_file_priority.size() <= file_index || m_file_priority[file_index] > 0))
+			{
+				TORRENT_ASSERT(m_file_created.size() == files().num_files());
+				if (m_file_created[file_index] == false)
+				{
+					file_handle->set_size(files().file_size(file_index), ec);
+					m_file_created.set_bit(file_index);
+					if (ec)
+					{
+						set_error(combine_path(m_save_path
+							, files().file_path(*file_iter)), ec);
+						return -1;
+					}
+				}
+			}
+
 			int num_tmp_bufs = copy_bufs(current_buf, file_bytes_left, tmp_bufs);
 			TORRENT_ASSERT(count_bufs(tmp_bufs, file_bytes_left) == num_tmp_bufs);
 			TORRENT_ASSERT(num_tmp_bufs <= num_bufs);
@@ -1226,7 +1254,7 @@ ret:
 			{
 				bytes_transferred = (int)(this->*op.unaligned_op)(file_handle, adjusted_offset
 					, tmp_bufs, num_tmp_bufs, ec);
-				if ((op.mode & file::rw_mask) == file::read_write
+				if ((op.mode & file::rw_mask) != file::read_only
 					&& adjusted_offset + bytes_transferred >= file_iter->size
 					&& (file_handle->pos_alignment() > 0 || file_handle->size_alignment() > 0))
 				{
@@ -1285,7 +1313,7 @@ ret:
 
 		// allocate a temporary, aligned, buffer
 		aligned_holder aligned_buf(aligned_size);
-		file::iovec_t b = {aligned_buf.get(), aligned_size};
+		file::iovec_t b = {aligned_buf.get(), size_t(aligned_size) };
 		size_type ret = file_handle->readv(aligned_start, &b, 1, ec);
 		if (ret < 0)
 		{
@@ -1326,7 +1354,7 @@ ret:
 
 		// allocate a temporary, aligned, buffer
 		aligned_holder aligned_buf(aligned_size);
-		file::iovec_t b = {aligned_buf.get(), aligned_size};
+		file::iovec_t b = {aligned_buf.get(), size_t(aligned_size) };
 		// we have something to read
 		if (aligned_start < actual_file_size && !ec)
 		{
@@ -1368,7 +1396,7 @@ ret:
 		, int offset
 		, int size)
 	{
-		file::iovec_t b = { (file::iovec_base_t)buf, size };
+		file::iovec_t b = { (file::iovec_base_t)buf, size_t(size) };
 		return writev(&b, slot, offset, 1, 0);
 	}
 
@@ -1378,7 +1406,7 @@ ret:
 		, int offset
 		, int size)
 	{
-		file::iovec_t b = { (file::iovec_base_t)buf, size };
+		file::iovec_t b = { (file::iovec_base_t)buf, size_t(size) };
 		return readv(&b, slot, offset, 1);
 	}
 
@@ -1393,6 +1421,12 @@ ret:
 		bool lock_files = m_settings ? settings().lock_files : false;
 		if (lock_files) mode |= file::lock_file;
 		if (!m_allocate_files) mode |= file::sparse;
+
+		// files with priority 0 should always be sparse
+		int file_index = fe - files().begin();
+		if (m_file_priority.size() > file_index && m_file_priority[file_index] == 0)
+			mode |= file::sparse;
+
 		if (m_settings && settings().no_atime_storage) mode |= file::no_atime;
 
 		return m_pool.open_file(const_cast<default_storage*>(this), m_save_path, fe, files(), mode, ec);
@@ -2313,7 +2347,7 @@ ret:
 						m_scratch_buffer2.reset(page_aligned_allocator::malloc(m_files.piece_length()));
 
 					int piece_size = m_files.piece_size(other_piece);
-					file::iovec_t b = {m_scratch_buffer2.get(), piece_size};
+					file::iovec_t b = {m_scratch_buffer2.get(), size_t(piece_size) };
 					if (m_storage->readv(&b, piece, 0, 1) != piece_size)
 					{
 						error = m_storage->error();
@@ -2327,7 +2361,7 @@ ret:
 				// the slot where this piece belongs is
 				// free. Just move the piece there.
 				int piece_size = m_files.piece_size(piece);
-				file::iovec_t b = {m_scratch_buffer.get(), piece_size};
+				file::iovec_t b = {m_scratch_buffer.get(), size_t(piece_size) };
 				if (m_storage->writev(&b, piece, 0, 1) != piece_size)
 				{
 					error = m_storage->error();
@@ -2369,7 +2403,7 @@ ret:
 					m_scratch_buffer.reset(page_aligned_allocator::malloc(m_files.piece_length()));
 			
 				int piece_size = m_files.piece_size(other_piece);
-				file::iovec_t b = {m_scratch_buffer.get(), piece_size};
+				file::iovec_t b = {m_scratch_buffer.get(), size_t(piece_size) };
 				if (m_storage->readv(&b, piece, 0, 1) != piece_size)
 				{
 					error = m_storage->error();
@@ -2949,6 +2983,8 @@ ret:
 	int piece_manager::slot_for(int piece) const
 	{
 		if (m_storage_mode != internal_storage_mode_compact_deprecated) return piece;
+		// this happens in seed mode, where we skip checking fastresume
+		if (m_piece_to_slot.empty()) return piece;
 		TORRENT_ASSERT(piece < int(m_piece_to_slot.size()));
 		TORRENT_ASSERT(piece >= 0);
 		return m_piece_to_slot[piece];
