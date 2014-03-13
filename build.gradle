@@ -82,6 +82,7 @@ android {
             renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
         }
 
         androidTest.setRoot('src/instrumentationTest')
@@ -98,19 +99,12 @@ android {
         }
     }
 
-    task nativeLibsToJar(
-            type: Zip,
-            description: 'create a jar archive of the native libs') {
-        destinationDir file('./libs')
-        baseName 'native-libs'
-        extension 'jar'
-        from 'libs/armeabi'
-        include '**/*.so'
-        into 'lib/armeabi'
-    }
-
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
