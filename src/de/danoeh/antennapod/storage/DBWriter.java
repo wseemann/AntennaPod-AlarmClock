@@ -17,16 +17,12 @@ import de.danoeh.antennapod.util.QueueAccess;
 import de.danoeh.antennapod.util.flattr.FlattrStatus;
 import de.danoeh.antennapod.util.flattr.FlattrThing;
 import de.danoeh.antennapod.util.flattr.SimpleFlattrThing;
-import org.apache.commons.lang3.StringUtils;
 import org.shredzone.flattr4j.model.Flattr;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -944,6 +940,27 @@ public class DBWriter {
                 for (Flattr flattr : flattrList) {
                     adapter.setItemFlattrStatus(formatURIForQuery(flattr.getThing().getUrl()), new FlattrStatus(flattr.getCreated().getTime()));
                 }
+                adapter.close();
+            }
+        });
+    }
+
+    /**
+     * Updates the KEY_AVAILABLE_ON_BITLOVE value of a given list of FeedMedia objects.
+     *
+     * @param context  A context that is used for opening a database connection
+     * @param newValue The new value for KEY_AVAILABLE_ON_BITLOVE
+     * @param mediaIds The list of media IDs that should be updated
+     */
+    public static Future<?> setBitloveAvailability(final Context context, final boolean newValue, final long... mediaIds) {
+        return dbExec.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (AppConfig.DEBUG) Log.d(TAG, "Updating bitlove availability of: " + Arrays.toString(mediaIds));
+
+                PodDBAdapter adapter = new PodDBAdapter(context);
+                adapter.open();
+                adapter.setBitloveAvailability(newValue, mediaIds);
                 adapter.close();
             }
         });

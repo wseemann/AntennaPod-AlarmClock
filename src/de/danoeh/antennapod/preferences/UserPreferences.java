@@ -51,6 +51,7 @@ public class UserPreferences implements
 	private static final String PREF_PLAYBACK_SPEED_ARRAY = "prefPlaybackSpeedArray";
 	public static final String PREF_PAUSE_PLAYBACK_FOR_FOCUS_LOSS = "prefPauseForFocusLoss";
     public static final String PREF_ENABLE_BITLOVE_DOWNLOAD = "prefEnableBitlove";
+    public static final String PREF_ENABLE_SEED_SERVICE = "prefEnableSeedService";
 
     // TODO: Make this value configurable
     private static final double PLAYED_DURATION_AUTOFLATTR_THRESHOLD = 0.8;
@@ -78,6 +79,7 @@ public class UserPreferences implements
 	private String[] playbackSpeedArray;
 	private boolean pauseForFocusLoss;
     private boolean bitloveDownloadEnabled;
+    private boolean seedServiceEnabled;
 
 	private UserPreferences(Context context) {
 		this.context = context;
@@ -133,6 +135,7 @@ public class UserPreferences implements
 				PREF_PLAYBACK_SPEED_ARRAY, null));
 		pauseForFocusLoss = sp.getBoolean(PREF_PAUSE_PLAYBACK_FOR_FOCUS_LOSS, false);
         bitloveDownloadEnabled = sp.getBoolean(PREF_ENABLE_BITLOVE_DOWNLOAD, false);
+        seedServiceEnabled = sp.getBoolean(PREF_ENABLE_SEED_SERVICE, false);
 	}
 
 	private int readThemeValue(String valueFromPrefs) {
@@ -292,6 +295,11 @@ public class UserPreferences implements
         return instance.bitloveDownloadEnabled;
     }
 
+    public static boolean isSeedServiceEnabled() {
+        instanceAvailable();
+        return instance.seedServiceEnabled;
+    }
+
     @Override
 	public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
 		if (AppConfig.DEBUG)
@@ -344,6 +352,8 @@ public class UserPreferences implements
             pauseOnHeadsetDisconnect = sp.getBoolean(PREF_PAUSE_ON_HEADSET_DISCONNECT, true);
         } else if (key.equals(PREF_ENABLE_BITLOVE_DOWNLOAD)) {
             bitloveDownloadEnabled = sp.getBoolean(PREF_ENABLE_BITLOVE_DOWNLOAD, false);
+        } else if (key.equals(PREF_ENABLE_SEED_SERVICE)) {
+            seedServiceEnabled = sp.getBoolean(PREF_ENABLE_SEED_SERVICE, false);
         }
 	}
 

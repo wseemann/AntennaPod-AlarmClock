@@ -79,6 +79,11 @@
                 android:title="@string/pref_bittorrent_enable_bitlove_title"
                 android:summary="@string/pref_bittorrent_enable_bitlove_sum"
                 android:defaultValue="false"/>
+            <CheckBoxPreference
+                android:key="prefEnableSeedService"
+                android:title="@string/pref_bittorrent_enable_seed_service_title"
+                android:summary="@string/pref_bittorrent_enable_seed_service_sum"
+                android:defaultValue="false"/>
         </PreferenceScreen>
 
     </PreferenceCategory>

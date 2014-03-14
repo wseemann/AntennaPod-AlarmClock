@@ -76,6 +76,7 @@ public class PodDBAdapter {
     public static final int KEY_LOCAL_MEDIA_URL_INDEX = 11;
     public static final int KEY_STREAM_URL_INDEX = 12;
     public static final int KEY_ORIGINAL_ENCLOSURE_INDEX = 13;
+    public static final int KEY_AVAILABLE_ON_BITLOVE_INDEX = 14;
     // --------- Download log indices
     public static final int KEY_FEEDFILE_INDEX = 1;
     public static final int KEY_FEEDFILETYPE_INDEX = 2;
@@ -135,6 +136,7 @@ public class PodDBAdapter {
     public static final String KEY_LOCAL_MEDIA_URL = "local_media_url";
     public static final String KEY_STREAM_URL = "stream_url";
     public static final String KEY_ORIGINAL_ENCLOSURE = "original_enclosure";
+    public static final String KEY_AVAILABLE_ON_BITLOVE = "available_on_bitlove";
 
     public static final String KEY_AUTO_DOWNLOAD = "auto_download";
     public static final String KEY_PLAYED_DURATION = "played_duration";
@@ -186,7 +188,8 @@ public class PodDBAdapter {
             + KEY_PLAYED_DURATION + " INTEGER,"
             + KEY_LOCAL_MEDIA_URL + " TEXT,"
             + KEY_STREAM_URL + " TEXT,"
-            + KEY_ORIGINAL_ENCLOSURE + " TEXT)";
+            + KEY_ORIGINAL_ENCLOSURE + " TEXT,"
+            + KEY_AVAILABLE_ON_BITLOVE + " INTEGER)";
 
     private static final String CREATE_TABLE_DOWNLOAD_LOG = "CREATE TABLE "
             + TABLE_NAME_DOWNLOAD_LOG + " (" + TABLE_PRIMARY_KEY + KEY_FEEDFILE
@@ -726,6 +729,18 @@ public class PodDBAdapter {
         }
     }
 
+    public void setBitloveAvailability(boolean newValue, long... mediaIds) {
+        db.beginTransaction();
+        ContentValues values = new ContentValues();
+        for (long id : mediaIds) {
+            values.clear();
+            values.put(KEY_AVAILABLE_ON_BITLOVE, (newValue) ? 1 : 0);
+            db.update(TABLE_NAME_FEED_MEDIA, values, KEY_ID + "=?", new String[]{String.valueOf(id)});
+        }
+        db.setTransactionSuccessful();
+        db.endTransaction();
+    }
+
     /**
      * Inserts or updates a download status.
      */
@@ -986,6 +1001,22 @@ public class PodDBAdapter {
                 + TABLE_NAME_FEED_ITEMS + "." + KEY_ID + "="
                 + TABLE_NAME_FEED_MEDIA + "." + KEY_FEEDITEM + " WHERE "
                 + TABLE_NAME_FEED_MEDIA + "." + KEY_DOWNLOADED + ">0";
+        Cursor c = db.rawQuery(query, null);
+        return c;
+    }
+
+
+    /**
+     * Returns a cursor of all episodes that were downloaded over bittorrent.
+     */
+    public Cursor getDownloadedBittorrentFeedItemsCursor() {
+        final String query = "SELECT " + SEL_FI_SMALL_STR + " FROM " + TABLE_NAME_FEED_ITEMS
+                + " INNER JOIN " + TABLE_NAME_FEED_MEDIA + " ON "
+                + TABLE_NAME_FEED_ITEMS + "." + KEY_ID + "="
+                + TABLE_NAME_FEED_MEDIA + "." + KEY_FEEDITEM + " WHERE "
+                + TABLE_NAME_FEED_MEDIA + "." + KEY_DOWNLOADED + ">0 AND ("
+                + TABLE_NAME_FEED_MEDIA + "." + KEY_AVAILABLE_ON_BITLOVE + ">0 OR "
+                + TABLE_NAME_FEED_MEDIA + "." + KEY_DOWNLOAD_URL + " LIKE '%.torrent')";
         Cursor c = db.rawQuery(query, null);
         return c;
     }
@@ -1338,6 +1369,8 @@ public class PodDBAdapter {
                         + " ADD COLUMN " + KEY_STREAM_URL + " TEXT");
                 db.execSQL("ALTER TABLE " + TABLE_NAME_FEED_MEDIA
                         + " ADD COLUMN " + KEY_ORIGINAL_ENCLOSURE + " TEXT");
+                db.execSQL("ALTER TABLE " + TABLE_NAME_FEED_MEDIA
+                        + " ADD COLUMN " + KEY_AVAILABLE_ON_BITLOVE + " INTEGER");
             }
         }
     }

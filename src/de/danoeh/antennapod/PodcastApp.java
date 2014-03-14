@@ -1,12 +1,15 @@
 package de.danoeh.antennapod;
 
 import android.app.Application;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.util.Log;
 import de.danoeh.antennapod.asynctask.ImageLoader;
 import de.danoeh.antennapod.feed.EventDistributor;
 import de.danoeh.antennapod.preferences.PlaybackPreferences;
 import de.danoeh.antennapod.preferences.UserPreferences;
+import de.danoeh.antennapod.receiver.ScreenOffReceiver;
 
 /** Main application class. */
 public class PodcastApp extends Application {
@@ -31,9 +34,14 @@ public class PodcastApp extends Application {
 		UserPreferences.createInstance(this);
 		PlaybackPreferences.createInstance(this);
 		EventDistributor.getInstance();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(new ScreenOffReceiver(), filter);
 	}
 
-	@Override
+    @Override
 	public void onLowMemory() {
 		super.onLowMemory();
 		Log.w(TAG, "Received onLowOnMemory warning. Cleaning image cache...");

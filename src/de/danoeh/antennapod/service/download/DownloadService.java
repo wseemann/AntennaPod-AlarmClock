@@ -244,6 +244,7 @@ public class DownloadService extends Service {
         downloadCompletionThread.start();
         setupNotificationBuilders();
         requester = DownloadRequester.getInstance();
+        BittorrentSessionProvider.incrementRefCount();
     }
 
     @Override

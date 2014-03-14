@@ -622,6 +622,21 @@ public final class DBReader {
     }
 
     /**
+     * Returns all FeedItems that have episodes that were either downloaded with bitlove or are only available as torrents.
+     *
+     * @param context A context that is used for opening a database connection.
+     */
+    public static List<FeedItem> getDownloadedBittorrentFeedItems(Context context) {
+        PodDBAdapter adapter = new PodDBAdapter(context);
+        adapter.open();
+        Cursor itemCursor = adapter.getDownloadedBittorrentFeedItemsCursor();
+        List<FeedItem> result = extractItemlistFromCursor(context, itemCursor);
+        itemCursor.close();
+        adapter.close();
+        return result;
+    }
+
+    /**
      * Loads a specific Feed from the database.
      *
      * @param context A context that is used for opening a database connection.

@@ -36,7 +36,7 @@ public class BitloveDownloader extends Downloader {
         if (media instanceof BitTorrentFeedMedia) {
             torrentUrl = request.getSource();
         } else if (media instanceof EnclosedFeedMedia) {
-            torrentUrl = BitloveUtils.isAvailableOnBitlove((EnclosedFeedMedia) media);
+            torrentUrl = BitloveUtils.isAvailableOnBitlove(context, (EnclosedFeedMedia) media);
             if (AppConfig.DEBUG) Log.d(TAG, "Download is available on Bitlove. Using bittorrent downloader");
         } else {
             torrentUrl = null;

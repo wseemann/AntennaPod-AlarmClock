@@ -1,8 +1,10 @@
 package de.danoeh.antennapod.service.download;
 
+import android.content.Context;
 import android.util.Log;
 import de.danoeh.antennapod.AppConfig;
 import de.danoeh.antennapod.feed.EnclosedFeedMedia;
+import de.danoeh.antennapod.storage.DBWriter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,7 +31,7 @@ public class BitloveUtils {
     private static final String BASE_SCHEME = "http";
     private static final String BASE_HOST = "api.bitlove.org";
 
-    public static final String isAvailableOnBitlove(EnclosedFeedMedia enclosedFeedMedia) {
+    public static final String isAvailableOnBitlove(final Context context, EnclosedFeedMedia enclosedFeedMedia) {
         if (enclosedFeedMedia.getOriginalEnclosureLink() == null) {
             return null;
         }
@@ -68,6 +70,7 @@ public class BitloveUtils {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        DBWriter.setBitloveAvailability(context, result != null, enclosedFeedMedia.getId());
         return result;
 
     }

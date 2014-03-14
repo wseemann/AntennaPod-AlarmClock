@@ -59,6 +59,8 @@ public class PreferenceActivity extends android.preference.PreferenceActivity {
     private static final String PREF_GPODNET_LOGOUT = "pref_gpodnet_logout";
     private static final String PREF_GPODNET_HOSTNAME = "pref_gpodnet_hostname";
 
+    private static final String PREF_BITTORRENT_SCREEN = "prefBittorrentSettings";
+
     private CheckBoxPreference[] selectedNetworks;
 
     @SuppressLint("NewApi")
@@ -309,7 +311,7 @@ public class PreferenceActivity extends android.preference.PreferenceActivity {
 
         findPreference(UserPreferences.PREF_ENABLE_AUTODL_WIFI_FILTER)
                 .setEnabled(UserPreferences.isEnableAutodownload());
-        findPreference(UserPreferences.PREF_ENABLE_BITLOVE_DOWNLOAD)
+        findPreference(PREF_BITTORRENT_SCREEN)
                 .setEnabled(Session.isTorrentLibAvailable());
         setSelectedNetworksEnabled(UserPreferences.isEnableAutodownload()
                 && UserPreferences.isEnableAutodownloadWifiFilter());
