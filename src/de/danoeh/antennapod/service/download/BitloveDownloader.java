@@ -49,6 +49,9 @@ public class BitloveDownloader extends Downloader {
             request.setSource(torrentUrl);
             currentDownloader = new BitTorrentDownloader(request, session);
             currentDownloader.download();
+            if (cancelled) {    // if cancel was called without a downloader
+                currentDownloader.cancel();
+            }
             if (currentDownloader.getResult().isSuccessful() || currentDownloader.cancelled) {
                 result = currentDownloader.getResult();
             } else {
@@ -64,6 +67,9 @@ public class BitloveDownloader extends Downloader {
         if (useHttp) {
             currentDownloader = new HttpDownloader(request);
             currentDownloader.download();
+            if (cancelled) {    // if cancel() was called on the old downloader
+                currentDownloader.cancel();
+            }
             result = currentDownloader.getResult();
         }
     }
@@ -71,8 +77,18 @@ public class BitloveDownloader extends Downloader {
     @Override
     public void cancel() {
         super.cancel();
+        if (currentDownloader != null) {
+            currentDownloader.cancel();
+        }
+    }
 
-        currentDownloader.cancel();
+    @Override
+    public int getTypeStringAsResource() {
+        if (currentDownloader != null) {
+            return currentDownloader.getTypeStringAsResource();
+        } else {
+            return 0;
+        }
     }
 }
 

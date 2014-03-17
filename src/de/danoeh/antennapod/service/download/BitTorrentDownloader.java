@@ -91,6 +91,11 @@ public class BitTorrentDownloader extends Downloader {
         }
     }
 
+    @Override
+    public int getTypeStringAsResource() {
+        return R.string.downloader_type_bittorrent;
+    }
+
     private void onSuccess() {
         if (AppConfig.DEBUG)
             Log.d(TAG, "Download was successful");

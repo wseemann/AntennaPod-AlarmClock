@@ -7,28 +7,30 @@ import de.danoeh.antennapod.R;
 
 import java.util.concurrent.Callable;
 
-/** Downloads files */
+/**
+ * Downloads files
+ */
 public abstract class Downloader implements Callable<Downloader> {
-	private static final String TAG = "Downloader";
+    private static final String TAG = "Downloader";
 
-	protected volatile boolean finished;
+    protected volatile boolean finished;
 
-	protected volatile boolean cancelled;
+    protected volatile boolean cancelled;
 
-	protected DownloadRequest request;
-	protected DownloadStatus result;
+    protected DownloadRequest request;
+    protected DownloadStatus result;
 
-	public Downloader(DownloadRequest request) {
-		super();
-		this.request = request;
-		this.request.setStatusMsg(R.string.download_pending);
-		this.cancelled = false;
+    public Downloader(DownloadRequest request) {
+        super();
+        this.request = request;
+        this.request.setStatusMsg(R.string.download_pending);
+        this.cancelled = false;
         this.result = new DownloadStatus(request, null, false, false, null);
-	}
+    }
 
-	protected abstract void download();
+    protected abstract void download();
 
-	public final Downloader call() {
+    public final Downloader call() {
         WifiManager wifiManager = (WifiManager) PodcastApp.getInstance().getSystemService(Context.WIFI_SERVICE);
         WifiManager.WifiLock wifiLock = null;
         if (wifiManager != null) {
@@ -36,34 +38,39 @@ public abstract class Downloader implements Callable<Downloader> {
             wifiLock.acquire();
         }
 
-		download();
+        download();
 
         if (wifiLock != null) {
             wifiLock.release();
         }
 
-		if (result == null) {
-			throw new IllegalStateException(
-					"Downloader hasn't created DownloadStatus object");
-		}
+        if (result == null) {
+            throw new IllegalStateException(
+                    "Downloader hasn't created DownloadStatus object");
+        }
         finished = true;
-		return this;
-	}
+        return this;
+    }
 
-	public DownloadRequest getDownloadRequest() {
-		return request;
-	}
+    public DownloadRequest getDownloadRequest() {
+        return request;
+    }
 
-	public DownloadStatus getResult() {
-		return result;
-	}
+    public DownloadStatus getResult() {
+        return result;
+    }
 
-	public boolean isFinished() {
-		return finished;
-	}
+    public boolean isFinished() {
+        return finished;
+    }
 
-	public void cancel() {
-		cancelled = true;
-	}
+    public void cancel() {
+        cancelled = true;
+    }
+
+    /**
+     * Returns the type of downloader, for example the name of the protocol that is used.
+     */
+    public abstract int getTypeStringAsResource();
 
 }

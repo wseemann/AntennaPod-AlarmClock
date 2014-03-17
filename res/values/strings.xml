@@ -116,6 +116,9 @@
     <string name="download_type_media">Media file</string>
     <string name="download_type_image">Image</string>
     <string name="download_request_error_dialog_message_prefix">An error occurred when trying to download the file:\u0020</string>
+    <string name="downloader_type_http">HTTP</string>
+    <string name="downloader_type_https">HTTPS</string>
+    <string name="downloader_type_bittorrent">Bittorrent</string>
 
     <!-- Mediaplayer messages -->
     <string name="player_error_msg">Error!</string>

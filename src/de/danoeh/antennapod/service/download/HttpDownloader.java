@@ -8,6 +8,7 @@ import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.util.DownloadError;
 import de.danoeh.antennapod.util.StorageUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -147,6 +148,14 @@ public class HttpDownloader extends Downloader {
             IOUtils.closeQuietly(out);
             AntennapodHttpClient.cleanup();
         }
+    }
+
+    @Override
+    public int getTypeStringAsResource() {
+        if (request != null && StringUtils.startsWith(request.getSource(), "https")) {
+            return R.string.downloader_type_https;
+        }
+        return R.string.downloader_type_http;
     }
 
     private void onSuccess() {

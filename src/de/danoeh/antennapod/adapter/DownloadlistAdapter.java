@@ -34,7 +34,8 @@ public class DownloadlistAdapter extends ArrayAdapter<Downloader> {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		Holder holder;
-		DownloadRequest request = getItem(position).getDownloadRequest();
+        Downloader downloader = getItem(position);
+		DownloadRequest request = downloader.getDownloadRequest();
 		// Inflate layout
 		if (convertView == null) {
 			holder = new Holder();
@@ -44,6 +45,7 @@ public class DownloadlistAdapter extends ArrayAdapter<Downloader> {
 			holder.title = (TextView) convertView.findViewById(R.id.txtvTitle);
 			holder.message = (TextView) convertView
 					.findViewById(R.id.txtvMessage);
+            holder.downloaderType = (TextView) convertView.findViewById(R.id.txtvDownloaderType);
 			holder.downloaded = (TextView) convertView
 					.findViewById(R.id.txtvDownloaded);
 			holder.percent = (TextView) convertView
@@ -67,6 +69,14 @@ public class DownloadlistAdapter extends ArrayAdapter<Downloader> {
 		if (request.getStatusMsg() != 0) {
 			holder.message.setText(request.getStatusMsg());
 		}
+
+        if (downloader.getTypeStringAsResource() != 0) {
+            holder.downloaderType.setText(downloader.getTypeStringAsResource());
+            holder.downloaderType.setVisibility(View.VISIBLE);
+        } else {
+            holder.downloaderType.setVisibility(View.INVISIBLE);
+        }
+
 		String strDownloaded = Converter.byteToString(request.getSoFar());
 		if (request.getSize() != DownloadStatus.SIZE_UNKNOWN) {
 			strDownloaded += " / " + Converter.byteToString(request.getSize());
@@ -86,6 +96,7 @@ public class DownloadlistAdapter extends ArrayAdapter<Downloader> {
 	static class Holder {
 		TextView title;
 		TextView message;
+        TextView downloaderType;
 		TextView downloaded;
 		TextView percent;
 		ProgressBar progbar;
