@@ -16,7 +16,7 @@ import org.shredzone.flattr4j.model.User;
 public class ScreenOffReceiver extends BroadcastReceiver{
     public static final String TAG = "ScreenOffReceiver";
 
-    private static final long INACTIVITY_TRACKER_TIMEOUT_MS = 1000 * 10;
+    private static final long INACTIVITY_TRACKER_TIMEOUT_MS = 1000 * 60 * 5;
     private static Thread inactivityTrackerThread = null;
 
     @Override

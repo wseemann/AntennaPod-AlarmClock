@@ -141,10 +141,6 @@ public class SeedService extends Service {
                         if (AppConfig.DEBUG) Log.d(TAG, alert.toString());
                         alert = session.popAlert();
                     }
-                    for (TorrentHandle handle : seededTorrents) {
-                        TorrentStatus status = handle.getStatus();
-                        if (AppConfig.DEBUG) Log.d(TAG, status.toString());
-                    }
                 }
 
             } catch (LibtorrentException e) {
