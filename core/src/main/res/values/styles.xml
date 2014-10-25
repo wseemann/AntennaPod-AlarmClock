@@ -2,6 +2,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <style name="Theme.AntennaPod.Light" parent="@style/Theme.AppCompat.Light">
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorPrimaryDark">@color/primary_light_dark</item>
+        <item name="colorAccent">@color/color_accent</item>
         <item name="attr/action_about">@drawable/action_about</item>
         <item name="attr/action_search">@drawable/action_search</item>
         <item name="attr/action_settings">@drawable/action_settings</item>
@@ -41,6 +44,7 @@
     </style>
 
     <style name="Theme.AntennaPod.Dark" parent="@style/Theme.AppCompat">
+        <item name="colorAccent">@color/color_accent</item>
         <item name="attr/action_about">@drawable/action_about_dark</item>
         <item name="attr/action_search">@drawable/action_search_dark</item>
         <item name="attr/action_settings">@drawable/action_settings_dark</item>
