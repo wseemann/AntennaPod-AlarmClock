@@ -135,6 +135,13 @@
         <item name="android:ellipsize">end</item>
     </style>
 
+    <style name="AntennaPod.TextView.ListItemSecondaryTitle" parent="@android:style/TextAppearance.Small">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+        <item name="android:lines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
     <style name="AntennaPod.Dialog.Title" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">@dimen/text_size_medium</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>

@@ -14,7 +14,6 @@
             android:paddingTop="@dimen/list_vertical_padding"
             android:paddingBottom="@dimen/list_vertical_padding"
             android:clipToPadding="false"
-
             dslv:collapsed_height="2dp"
             dslv:drag_enabled="false"
             dslv:drag_scroll_start="0.33"
