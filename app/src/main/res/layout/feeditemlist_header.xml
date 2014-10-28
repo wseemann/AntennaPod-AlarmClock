@@ -23,7 +23,7 @@
         android:src="?attr/action_about"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:background="?attr/borderless_button"/>
+        android:background="?attr/selectableItemBackground"/>
 
     <ImageButton
         android:layout_width="48dp"
@@ -34,7 +34,7 @@
         android:src="?attr/location_web_site"
         android:layout_toLeftOf="@id/butShowInfo"
         android:layout_alignParentBottom="true"
-        android:background="?attr/borderless_button"/>
+        android:background="?attr/selectableItemBackground"/>
 
     <TextView
         android:id="@+id/txtvTitle"

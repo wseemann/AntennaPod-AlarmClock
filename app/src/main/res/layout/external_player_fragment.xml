@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/borderless_button">
+            android:background="?attr/selectableItemBackground">
 
             <ImageView
                 android:id="@+id/imgvCover"
@@ -53,7 +53,7 @@
             android:contentDescription="@string/pause_label"
             android:layout_width="@dimen/external_player_height"
             android:layout_height="@dimen/external_player_height"
-            android:background="?attr/borderless_button"/>
+            android:background="?attr/selectableItemBackground"/>
     </LinearLayout>
 
 </LinearLayout>

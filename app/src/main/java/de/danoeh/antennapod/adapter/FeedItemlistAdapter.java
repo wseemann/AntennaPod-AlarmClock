@@ -122,7 +122,7 @@ public class FeedItemlistAdapter extends BaseAdapter {
                     break;
             }
 
-            holder.published.setText(DateUtils.formatDateTime(context, item.getPubDate().getTime(), DateUtils.FORMAT_SHOW_DATE));
+            holder.published.setText(DateUtils.formatDateTime(context, item.getPubDate().getTime(), DateUtils.FORMAT_ABBREV_ALL));
 
 
             FeedMedia media = item.getMedia();

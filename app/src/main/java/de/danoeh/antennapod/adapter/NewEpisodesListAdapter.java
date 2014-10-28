@@ -86,7 +86,7 @@ public class NewEpisodesListAdapter extends BaseAdapter {
         }
 
         holder.title.setText(item.getTitle());
-        holder.pubDate.setText(DateUtils.formatDateTime(context, item.getPubDate().getTime(), DateUtils.FORMAT_SHOW_DATE));
+        holder.pubDate.setText(DateUtils.formatDateTime(context, item.getPubDate().getTime(), DateUtils.FORMAT_ABBREV_ALL));
         if (item.isRead()) {
             holder.statusUnread.setVisibility(View.INVISIBLE);
         } else {

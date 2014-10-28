@@ -64,7 +64,7 @@
         android:id="@+id/butSecondaryAction"
         android:layout_width="@dimen/listview_secondary_button_width"
         android:layout_height="match_parent"
-        android:background="?attr/borderless_button"
+        android:background="?attr/selectableItemBackground"
         android:clickable="false"
         android:contentDescription="@string/remove_episode_lable"
         android:focusable="false"

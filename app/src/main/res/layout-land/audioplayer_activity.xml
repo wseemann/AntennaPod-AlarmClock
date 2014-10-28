@@ -36,7 +36,7 @@
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:layout_alignParentLeft="true"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:padding="4dp"/>
 
                 <ImageButton
@@ -45,7 +45,7 @@
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:layout_alignParentRight="true"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:padding="4dp"/>
 
                 <TextView
@@ -101,7 +101,7 @@
                     android:layout_width="80dp"
                     android:layout_height="match_parent"
                     android:layout_centerHorizontal="true"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:src="?attr/av_pause"/>
 
                 <ImageButton
@@ -110,7 +110,7 @@
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:layout_toLeftOf="@id/butPlay"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:src="?attr/av_rewind"/>
 
                 <ImageButton
@@ -119,7 +119,7 @@
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:layout_toRightOf="@id/butPlay"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:src="?attr/av_fast_forward"/>
 
                 <Button
@@ -127,7 +127,7 @@
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:layout_toRightOf="@id/butFF"
-                    android:background="?attr/borderless_button"
+                    android:background="?attr/selectableItemBackground"
                     android:src="?attr/av_fast_forward"
                     android:textColor="@color/gray"
                     android:textSize="@dimen/text_size_medium"

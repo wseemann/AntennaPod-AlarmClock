@@ -79,14 +79,6 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/vertical_divider" />
 
-    <ImageButton
-        android:id="@+id/butSecondaryAction"
-        android:layout_width="@dimen/listview_secondary_button_width"
-        android:layout_height="match_parent"
-        android:background="?attr/borderless_button"
-        android:clickable="false"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        tools:ignore="ContentDescription" />
+    <include layout="@layout/secondary_action"/>
 
 </LinearLayout>
