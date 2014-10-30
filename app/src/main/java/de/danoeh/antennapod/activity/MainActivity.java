@@ -42,6 +42,7 @@ import de.danoeh.antennapod.fragment.NewEpisodesFragment;
 import de.danoeh.antennapod.fragment.PlaybackHistoryFragment;
 import de.danoeh.antennapod.fragment.QueueFragment;
 import de.danoeh.antennapod.menuhandler.NavDrawerActivity;
+import de.danoeh.antennapod.preferences.PreferenceController;
 
 /**
  * The activity that is shown when the user launches the app.
@@ -314,7 +315,7 @@ public class MainActivity extends ActionBarActivity implements NavDrawerActivity
         }
         switch (item.getItemId()) {
             case R.id.show_preferences:
-                startActivity(new Intent(this, PreferenceActivity.class));
+                startActivity(new Intent(this, PreferenceController.getPreferenceActivity()));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
