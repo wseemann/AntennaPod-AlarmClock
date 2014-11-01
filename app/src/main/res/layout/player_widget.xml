@@ -17,7 +17,7 @@
             android:layout_alignParentRight="true"
             android:layout_margin="12dp"
             android:background="?attr/selectableItemBackground"
-            android:src="@drawable/av_play_dark" />
+            android:src="@drawable/ic_play_arrow_white_24dp" />
 
         <LinearLayout
             android:id="@+id/layout_left"
