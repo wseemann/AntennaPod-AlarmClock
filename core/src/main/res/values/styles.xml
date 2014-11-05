@@ -3,7 +3,6 @@
 
     <style name="Theme.AntennaPod.Light" parent="@style/Theme.AppCompat.Light">
         <item name="colorPrimary">@color/primary_light</item>
-        <item name="colorPrimaryDark">@color/primary_light_dark</item>
         <item name="colorAccent">@color/color_accent</item>
         <item name="attr/action_about">@drawable/ic_info_grey600_24dp</item>
         <item name="attr/action_search">@drawable/ic_search_grey600_24dp</item>

@@ -23,7 +23,6 @@
 
     <!-- Theme colors -->
     <color name="primary_light">#FFFFFF</color>
-    <color name="primary_light_dark">#EDEDED</color>
     <color name="color_accent">#009EC8</color>
 
 
