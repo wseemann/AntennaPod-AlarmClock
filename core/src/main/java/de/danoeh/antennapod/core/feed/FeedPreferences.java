@@ -11,12 +11,14 @@ public class FeedPreferences {
 
     private long feedID;
     private boolean autoDownload;
+    private boolean loadAllPages;
     private String username;
     private String password;
 
-    public FeedPreferences(long feedID, boolean autoDownload, String username, String password) {
+    public FeedPreferences(long feedID, boolean autoDownload, boolean loadAllPages, String username, String password) {
         this.feedID = feedID;
         this.autoDownload = autoDownload;
+        this.loadAllPages = loadAllPages;
         this.username = username;
         this.password = password;
     }
@@ -85,5 +87,13 @@ public class FeedPreferences {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isLoadAllPages() {
+        return loadAllPages;
+    }
+
+    public void setLoadAllPages(boolean loadAllPages) {
+        this.loadAllPages = loadAllPages;
     }
 }

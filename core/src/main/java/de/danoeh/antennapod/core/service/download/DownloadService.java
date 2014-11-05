@@ -866,7 +866,7 @@ public class DownloadService extends Service {
             feed.setFile_url(request.getDestination());
             feed.setId(request.getFeedfileId());
             feed.setDownloaded(true);
-            feed.setPreferences(new FeedPreferences(0, true, request.getUsername(), request.getPassword()));
+            feed.setPreferences(new FeedPreferences(0, true, false, request.getUsername(), request.getPassword()));
 
             DownloadError reason = null;
             String reasonDetailed = null;

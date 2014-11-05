@@ -67,6 +67,8 @@ public class PodDBAdapter {
     public static final int KEY_FEED_FLATTR_STATUS_INDEX = 14;
     public static final int KEY_FEED_USERNAME_INDEX = 15;
     public static final int KEY_FEED_PASSWORD_INDEX = 16;
+    public static final int KEY_IS_PAGED_INDEX = 17;
+    public static final int KEY_LOAD_ALL_PAGES_INDEX = 18;
     // ----------- FeedItem indices
     public static final int KEY_CONTENT_ENCODED_INDEX = 2;
     public static final int KEY_PUBDATE_INDEX = 3;
@@ -144,6 +146,8 @@ public class PodDBAdapter {
     public static final String KEY_PLAYED_DURATION = "played_duration";
     public static final String KEY_USERNAME = "username";
     public static final String KEY_PASSWORD = "password";
+    public static final String KEY_IS_PAGED = "is_paged";
+    public static final String KEY_LOAD_ALL_PAGES = "load_all_pages";
 
     // Table names
     public static final String TABLE_NAME_FEEDS = "Feeds";
@@ -168,7 +172,9 @@ public class PodDBAdapter {
             + KEY_FEED_IDENTIFIER + " TEXT," + KEY_AUTO_DOWNLOAD + " INTEGER DEFAULT 1,"
             + KEY_FLATTR_STATUS + " INTEGER,"
             + KEY_USERNAME + " TEXT,"
-            + KEY_PASSWORD + " TEXT)";
+            + KEY_PASSWORD + " TEXT,"
+            + KEY_IS_PAGED + " INTEGER DEFAULT 0,"
+            + KEY_LOAD_ALL_PAGES + " INTEGER DEFAULT 0)";
 
     public static final String CREATE_TABLE_FEED_ITEMS = "CREATE TABLE "
             + TABLE_NAME_FEED_ITEMS + " (" + TABLE_PRIMARY_KEY + KEY_TITLE
@@ -234,8 +240,10 @@ public class PodDBAdapter {
             TABLE_NAME_FEEDS + "." + KEY_FEED_IDENTIFIER,
             TABLE_NAME_FEEDS + "." + KEY_AUTO_DOWNLOAD,
             TABLE_NAME_FEEDS + "." + KEY_FLATTR_STATUS,
+            TABLE_NAME_FEEDS + "." + KEY_IS_PAGED,
             TABLE_NAME_FEEDS + "." + KEY_USERNAME,
-            TABLE_NAME_FEEDS + "." + KEY_PASSWORD
+            TABLE_NAME_FEEDS + "." + KEY_PASSWORD,
+            TABLE_NAME_FEEDS + "." + KEY_LOAD_ALL_PAGES
     };
 
     // column indices for FEED_SEL_STD
@@ -255,8 +263,10 @@ public class PodDBAdapter {
     public static final int IDX_FEED_SEL_STD_FEED_IDENTIFIER = 13;
     public static final int IDX_FEED_SEL_PREFERENCES_AUTO_DOWNLOAD = 14;
     public static final int IDX_FEED_SEL_STD_FLATTR_STATUS = 15;
-    public static final int IDX_FEED_SEL_PREFERENCES_USERNAME = 16;
-    public static final int IDX_FEED_SEL_PREFERENCES_PASSWORD = 17;
+    public static final int IDX_FEED_SEL_STD_IS_PAGED = 16;
+    public static final int IDX_FEED_SEL_PREFERENCES_USERNAME = 17;
+    public static final int IDX_FEED_SEL_PREFERENCES_PASSWORD = 18;
+    public static final int IDX_FEED_SEL_PREFERENCES_LOAD_ALL_PAGES = 19;
 
 
     /**
@@ -386,6 +396,7 @@ public class PodDBAdapter {
         Log.d(TAG, "Setting feed with flattr status " + feed.getTitle() + ": " + feed.getFlattrStatus().toLong());
 
         values.put(KEY_FLATTR_STATUS, feed.getFlattrStatus().toLong());
+        values.put(KEY_IS_PAGED, feed.isPaged());
         if (feed.getId() == 0) {
             // Create new entry
             if (BuildConfig.DEBUG)
@@ -407,6 +418,7 @@ public class PodDBAdapter {
         }
         ContentValues values = new ContentValues();
         values.put(KEY_AUTO_DOWNLOAD, prefs.getAutoDownload());
+        values.put(KEY_LOAD_ALL_PAGES, prefs.isLoadAllPages());
         values.put(KEY_USERNAME, prefs.getUsername());
         values.put(KEY_PASSWORD, prefs.getPassword());
         db.update(TABLE_NAME_FEEDS, values, KEY_ID + "=?", new String[]{String.valueOf(prefs.getFeedID())});

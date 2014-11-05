@@ -251,7 +251,7 @@ public final class DBTasks {
         if (feed.getPreferences() == null) {
             f = new Feed(feed.getDownload_url(), new Date(), feed.getTitle());
         } else {
-            f = new Feed(feed.getDownload_url(), new Date(), feed.getTitle(),
+            f = new Feed(feed.getDownload_url(), new Date(), feed.getTitle(), feed.getPreferences().isLoadAllPages(),
                     feed.getPreferences().getUsername(), feed.getPreferences().getPassword());
         }
         f.setId(feed.getId());
