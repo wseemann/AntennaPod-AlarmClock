@@ -3,6 +3,8 @@ package de.danoeh.antennapod.core.feed;
 import android.content.Context;
 import android.net.Uri;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -103,6 +105,7 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
         this.image = image;
         this.flattrStatus = status;
         this.paged = paged;
+        this.nextPageLink = nextPageLink;
 
         items = new ArrayList<FeedItem>();
     }
@@ -292,7 +295,12 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
         if (other.flattrStatus != null) {
             flattrStatus = other.flattrStatus;
         }
-        this.paged = other.paged;
+        // this feed's nextPage might already point to a higher page, so we only update the nextPage value
+        // if this feed is not page and the other feed is.
+        if (!this.paged && other.paged) {
+            this.paged = other.paged;
+            this.nextPageLink = other.nextPageLink;
+        }
     }
 
     public boolean compareWithOther(Feed other) {
@@ -334,6 +342,9 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
             }
         }
         if (other.isPaged() && !this.isPaged()) {
+            return true;
+        }
+        if (!StringUtils.equals(other.getNextPageLink(), this.getNextPageLink())) {
             return true;
         }
         return false;

@@ -819,36 +819,13 @@ public class DownloadService extends Service {
                                 }
                             }
 
-                            /* If loadAllPages=true, check if another page is available and queue it for download
-                              * */
-                                                         /*
-                            FeedHandlerResult feedHandlerResult = results.get(i);
-                            final String nextPage = feedHandlerResult.nextPage;
-                            if (savedFeed.isPaged() && feedHandlerResult.feed.getPreferences().isLoadAllPages() &&
-                                    nextPage != null) {
-                                final int nextPageNr = feedHandlerResult.feed.getPageNr() + 1;
-
-                                if (BuildConfig.DEBUG) Log.d(TAG, "Loading page "
-                                        + nextPageNr + " of " + savedFeed.getTitle());
-
-                                Feed nextFeed = new Feed(nextPage, new Date(), savedFeed.getTitle() + "(" + nextPageNr + ")");
-                                nextFeed.setPreferences(savedFeed.getPreferences());
-                                // if the next page is the last one, then the following preference should be set to false to avoid infinite loops
-                                nextFeed.getPreferences().setLoadAllPages(!feedHandlerResult.nextPageIsLast);
-                                nextFeed.setId(savedFeed.getId());
-                                nextFeed.setPageNr(nextPageNr);
-
-                                try {
-                                    DownloadRequester.getInstance().downloadFeed(DownloadService.this, nextFeed);
-                                } catch (DownloadRequestException e) {
-                                    Log.e(TAG, "Error trying to load next page", e);
-                                }
-                            }
-                            */
+                            // If loadAllPages=true, check if another page is available and queue it for download
 
                             final boolean loadAllPages = results.get(i).first.getArguments().getBoolean(DownloadRequester.REQUEST_ARG_LOAD_ALL_PAGES);
-                            if (loadAllPages && savedFeed.getNextPageLink() != null) {
+                            final Feed feed = results.get(i).second.feed;
+                            if (loadAllPages && feed.getNextPageLink() != null) {
                                 try {
+                                    feed.setId(savedFeed.getId());
                                     DBTasks.loadNextPageOfFeed(DownloadService.this, savedFeed, true);
                                 } catch (DownloadRequestException e) {
                                     Log.e(TAG, "Error trying to load next page", e);

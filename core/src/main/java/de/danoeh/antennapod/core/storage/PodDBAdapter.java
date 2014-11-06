@@ -246,7 +246,6 @@ public class PodDBAdapter {
             TABLE_NAME_FEEDS + "." + KEY_NEXT_PAGE_LINK,
             TABLE_NAME_FEEDS + "." + KEY_USERNAME,
             TABLE_NAME_FEEDS + "." + KEY_PASSWORD,
-
     };
 
     // column indices for FEED_SEL_STD

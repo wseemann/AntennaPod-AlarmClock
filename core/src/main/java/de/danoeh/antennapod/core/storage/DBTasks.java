@@ -257,12 +257,33 @@ public final class DBTasks {
     }
 
     /**
+     * Downloads all pages of the given feed.
+     *
+     * @param context Used for requesting the download.
+     * @param feed    The Feed object.
+     */
+    public static void refreshCompleteFeed(final Context context, final Feed feed) {
+        try {
+            refreshFeed(context, feed, true);
+        } catch (DownloadRequestException e) {
+            e.printStackTrace();
+            DBWriter.addDownloadStatus(
+                    context,
+                    new DownloadStatus(feed, feed
+                            .getHumanReadableIdentifier(),
+                            DownloadError.ERROR_REQUEST_ERROR, false, e
+                            .getMessage()
+                    )
+            );
+        }
+    }
+
+    /**
      * Queues the next page of this Feed for download. The given Feed has to be a paged
      * Feed (isPaged()=true) and must contain a nextPageLink.
      *
      * @param context      Used for requesting the download.
      * @param feed         The feed whose next page should be loaded.
-     *
      * @param loadAllPages True if any subsequent pages should also be loaded, false otherwise.
      */
     public static void loadNextPageOfFeed(final Context context, Feed feed, boolean loadAllPages) throws DownloadRequestException {
@@ -286,6 +307,10 @@ public final class DBTasks {
      */
     public static void refreshFeed(Context context, Feed feed)
             throws DownloadRequestException {
+        refreshFeed(context, feed, false);
+    }
+
+    private static void refreshFeed(Context context, Feed feed, boolean loadAllPages) throws DownloadRequestException {
         Feed f;
         if (feed.getPreferences() == null) {
             f = new Feed(feed.getDownload_url(), new Date(), feed.getTitle());
@@ -294,7 +319,7 @@ public final class DBTasks {
                     feed.getPreferences().getUsername(), feed.getPreferences().getPassword());
         }
         f.setId(feed.getId());
-        DownloadRequester.getInstance().downloadFeed(context, f);
+        DownloadRequester.getInstance().downloadFeed(context, f, loadAllPages);
     }
 
     /**
