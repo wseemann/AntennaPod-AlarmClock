@@ -26,6 +26,15 @@ public class HandlerState {
      * URL of the feed, the value is the title
      */
     protected Map<String, String> alternateUrls;
+    /**
+     * Contains the link to the next page of the feed.
+     * */
+    protected String nextPage;
+    /**
+     * Contains the link to the last page of the feed. If nextPage=null, this will be used
+     * as if it was the next page of the feed when it is accessed by the FeedHandler.
+     * */
+    protected String lastPage;
     protected ArrayList<FeedItem> items;
     protected FeedItem currentItem;
     protected Stack<SyndElement> tagstack;
@@ -107,5 +116,17 @@ public class HandlerState {
 
     public HashMap<String, Object> getTempObjects() {
         return tempObjects;
+    }
+
+    public String getNextAvailablePage() {
+        return (nextPage != null) ? nextPage : lastPage;
+    }
+
+    public void setNextPage(String nextPage) {
+        this.nextPage = nextPage;
+    }
+
+    public void setLastPage(String lastPage) {
+        this.lastPage = lastPage;
     }
 }

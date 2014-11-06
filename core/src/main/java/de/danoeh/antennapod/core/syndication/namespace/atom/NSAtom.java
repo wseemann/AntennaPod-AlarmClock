@@ -44,6 +44,8 @@ public class NSAtom extends Namespace {
     private static final String LINK_REL_PAYMENT = "payment";
     private static final String LINK_REL_RELATED = "related";
     private static final String LINK_REL_SELF = "self";
+    private static final String LINK_REL_NEXT = "next";
+    private static final String LINK_REL_LAST = "last";
     // type-values
     private static final String LINK_TYPE_ATOM = "application/atom+xml";
     private static final String LINK_TYPE_HTML = "text/html";
@@ -120,6 +122,13 @@ public class NSAtom extends Namespace {
                     }
                 } else if (rel.equals(LINK_REL_PAYMENT)) {
                     state.getFeed().setPaymentLink(href);
+                } else if (rel.equals(LINK_REL_NEXT)) {
+                    state.setNextPage(href);
+                    state.getFeed().setPaged(true);
+                    state.getFeed().setNextPageLink(href);
+                } else if (rel.equals(LINK_REL_LAST)) {
+                    state.setLastPage(href);
+                    state.getFeed().setPaged(true);
                 }
             }
         }

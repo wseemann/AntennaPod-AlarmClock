@@ -107,7 +107,7 @@ public class StorageCallbacksImpl implements StorageCallbacks {
             db.execSQL("ALTER TABLE " + PodDBAdapter.TABLE_NAME_FEEDS
                 + " ADD COLUMN " + PodDBAdapter.KEY_IS_PAGED + " INTEGER DEFAULT 0");
             db.execSQL("ALTER TABLE " + PodDBAdapter.TABLE_NAME_FEEDS
-                    + " ADD COLUMN " + PodDBAdapter.KEY_LOAD_ALL_PAGES + " INTEGER DEFAULT 0");
+                    + " ADD COLUMN " + PodDBAdapter.KEY_NEXT_PAGE_LINK + " TEXT");
         }
     }
 }

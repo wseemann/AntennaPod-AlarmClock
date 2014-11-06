@@ -351,7 +351,8 @@ public final class DBReader {
                 cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_DOWNLOAD_URL),
                 cursor.getInt(PodDBAdapter.IDX_FEED_SEL_STD_DOWNLOADED) > 0,
                 new FlattrStatus(cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_FLATTR_STATUS)),
-                cursor.getInt(PodDBAdapter.IDX_FEED_SEL_STD_IS_PAGED) > 0);
+                cursor.getInt(PodDBAdapter.IDX_FEED_SEL_STD_IS_PAGED) > 0,
+                cursor.getString(PodDBAdapter.IDX_FEED_SEL_STD_NEXT_PAGE_LINK));
 
         if (image != null) {
             image.setOwner(feed);
@@ -359,7 +360,6 @@ public final class DBReader {
 
         FeedPreferences preferences = new FeedPreferences(cursor.getLong(PodDBAdapter.IDX_FEED_SEL_STD_ID),
                 cursor.getInt(PodDBAdapter.IDX_FEED_SEL_PREFERENCES_AUTO_DOWNLOAD) > 0,
-                cursor.getInt(PodDBAdapter.IDX_FEED_SEL_PREFERENCES_LOAD_ALL_PAGES) > 0,
                 cursor.getString(PodDBAdapter.IDX_FEED_SEL_PREFERENCES_USERNAME),
                 cursor.getString(PodDBAdapter.IDX_FEED_SEL_PREFERENCES_PASSWORD));
 

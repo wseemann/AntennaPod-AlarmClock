@@ -24,7 +24,7 @@ public class DownloadRequest implements Parcelable {
     protected int statusMsg;
 
     public DownloadRequest(String destination, String source, String title,
-                           long feedfileId, int feedfileType, String username, String password, boolean deleteOnFailure) {
+                           long feedfileId, int feedfileType, String username, String password, boolean deleteOnFailure, Bundle arguments) {
         Validate.notNull(destination);
         Validate.notNull(source);
         Validate.notNull(title);
@@ -37,12 +37,12 @@ public class DownloadRequest implements Parcelable {
         this.username = username;
         this.password = password;
         this.deleteOnFailure = deleteOnFailure;
-        this.arguments = new Bundle();
+        this.arguments = (arguments != null) ? arguments : new Bundle();
     }
 
     public DownloadRequest(String destination, String source, String title,
                            long feedfileId, int feedfileType) {
-        this(destination, source, title, feedfileId, feedfileType, null, null, true);
+        this(destination, source, title, feedfileId, feedfileType, null, null, true, null);
     }
 
     private DownloadRequest(Parcel in) {

@@ -61,7 +61,9 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
     /**
      * The page number that this feed is on. Only feeds with page number "0" should be stored in the
      * database, feed objects with a higher page number only exist temporarily and should be merged
-     * into feeds with page number "0"
+     * into feeds with page number "0".
+     * <p/>
+     * This attribute's value is not saved in the database
      */
     private int pageNr;
 
@@ -72,11 +74,17 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
     private boolean paged;
 
     /**
+     * Link to the next page of this feed. If this feed object represents a logical feed (i.e. a feed
+     * that is saved in the database) this might be null while still being a paged feed.
+     */
+    private String nextPageLink;
+
+    /**
      * This constructor is used for restoring a feed from the database.
      */
     public Feed(long id, Date lastUpdate, String title, String link, String description, String paymentLink,
                 String author, String language, String type, String feedIdentifier, FeedImage image, String fileUrl,
-                String downloadUrl, boolean downloaded, FlattrStatus status, boolean paged) {
+                String downloadUrl, boolean downloaded, FlattrStatus status, boolean paged, String nextPageLink) {
         super(fileUrl, downloadUrl, downloaded);
         this.id = id;
         this.title = title;
@@ -106,7 +114,7 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
                 String author, String language, String type, String feedIdentifier, FeedImage image, String fileUrl,
                 String downloadUrl, boolean downloaded) {
         this(id, lastUpdate, title, link, description, paymentLink, author, language, type, feedIdentifier, image,
-                fileUrl, downloadUrl, downloaded, new FlattrStatus(), false);
+                fileUrl, downloadUrl, downloaded, new FlattrStatus(), false, null);
     }
 
     /**
@@ -143,9 +151,9 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
      * This constructor is used for requesting a feed download (it must not be used for anything else!). It should be
      * used if the title of the feed is already known.
      */
-    public Feed(String url, Date lastUpdate, String title, boolean loadPagedFeeds, String username, String password) {
+    public Feed(String url, Date lastUpdate, String title, String username, String password) {
         this(url, lastUpdate, title);
-        preferences = new FeedPreferences(0, true, loadPagedFeeds, username, password);
+        preferences = new FeedPreferences(0, true, username, password);
     }
 
     /**
@@ -475,5 +483,13 @@ public class Feed extends FeedFile implements FlattrThing, PicassoImageResource 
 
     public void setPaged(boolean paged) {
         this.paged = paged;
+    }
+
+    public String getNextPageLink() {
+        return nextPageLink;
+    }
+
+    public void setNextPageLink(String nextPageLink) {
+        this.nextPageLink = nextPageLink;
     }
 }
