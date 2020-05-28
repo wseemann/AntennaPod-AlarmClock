@@ -23,6 +23,7 @@ import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.MainActivity;
 import de.danoeh.antennapod.activity.PreferenceActivity;
 import de.danoeh.antennapod.adapter.NavListAdapter;
+import de.danoeh.antennapod.core.alarm.deskclock.AlarmClockFragment;
 import de.danoeh.antennapod.core.asynctask.FeedRemover;
 import de.danoeh.antennapod.core.dialog.ConfirmationDialog;
 import de.danoeh.antennapod.core.event.FeedListUpdateEvent;
@@ -62,7 +63,8 @@ public class NavDrawerFragment extends Fragment implements AdapterView.OnItemCli
             DownloadsFragment.TAG,
             PlaybackHistoryFragment.TAG,
             AddFeedFragment.TAG,
-            NavListAdapter.SUBSCRIPTION_LIST_TAG
+            NavListAdapter.SUBSCRIPTION_LIST_TAG,
+            AlarmClockFragment.TAG
     };
 
     private DBReader.NavDrawerData navDrawerData;

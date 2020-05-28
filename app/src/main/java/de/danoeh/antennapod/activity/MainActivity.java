@@ -28,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.core.alarm.deskclock.AlarmClockFragment;
 import de.danoeh.antennapod.core.event.MessageEvent;
 import de.danoeh.antennapod.core.preferences.UserPreferences;
 import de.danoeh.antennapod.core.util.StorageUtils;
@@ -217,6 +218,9 @@ public class MainActivity extends CastEnabledActivity {
                 break;
             case SubscriptionFragment.TAG:
                 fragment = new SubscriptionFragment();
+                break;
+            case AlarmClockFragment.TAG:
+                fragment = new AlarmClockFragment();
                 break;
             default:
                 // default to the queue

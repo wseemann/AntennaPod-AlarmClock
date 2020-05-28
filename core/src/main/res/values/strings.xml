@@ -22,6 +22,7 @@
     <string name="downloads_log_label">Log</string>
     <string name="subscriptions_label">Subscriptions</string>
     <string name="subscriptions_list_label">Subscriptions List</string>
+    <string name="alarm_clock_label">Alarm Clock</string>
     <string name="cancel_download_label">Cancel\nDownload</string>
     <string name="playback_history_label">Playback History</string>
     <string name="gpodnet_main_label">gpodder.net</string>

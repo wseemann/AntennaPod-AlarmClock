@@ -131,6 +131,7 @@ android {
 
 dependencies {
     freeImplementation project(":core")
+    freeImplementation project(":deskclock")
     // free build hack: skip some dependencies
     if (!doFreeBuild()) {
         playImplementation project(":core")

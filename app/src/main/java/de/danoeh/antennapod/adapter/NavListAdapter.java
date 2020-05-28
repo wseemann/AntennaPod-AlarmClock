@@ -20,6 +20,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.widget.IconTextView;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.core.alarm.deskclock.AlarmClockFragment;
 import de.danoeh.antennapod.core.feed.Feed;
 import de.danoeh.antennapod.core.glide.ApGlideSettings;
 import de.danoeh.antennapod.core.preferences.UserPreferences;
@@ -128,6 +129,9 @@ public class NavListAdapter extends BaseAdapter
                 icon = R.attr.ic_folder;
                 break;
             case AddFeedFragment.TAG:
+                icon = R.attr.content_new;
+                break;
+            case AlarmClockFragment.TAG:
                 icon = R.attr.content_new;
                 break;
             default:
