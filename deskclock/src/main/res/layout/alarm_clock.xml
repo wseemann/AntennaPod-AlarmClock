@@ -14,16 +14,26 @@
      limitations under the License.
 -->
 
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        android:layout_alignParentTop="true"
+        app:title="@string/alarm_clock_label"
+        android:id="@+id/toolbar"/>
 
     <de.danoeh.antennapod.core.alarm.deskclock.AlarmRecyclerView
         android:id="@+id/alarms_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
         android:clipToPadding="false"
         android:descendantFocusability="beforeDescendants"
         android:fadingEdgeLength="0dp"
@@ -46,4 +56,4 @@
         android:textColor="@color/no_alarms"
         android:visibility="gone" />
 
-</FrameLayout>
+</RelativeLayout>

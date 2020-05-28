@@ -32,6 +32,8 @@ import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
 import de.danoeh.antennapod.core.alarm.deskclock.events.LogEventTracker;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -128,10 +130,11 @@ public final class AlarmClockFragment extends DeskClockFragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedState) {
         // Inflate the layout for this fragment
-        final View v = inflater.inflate(R.layout.alarm_clock, container, false);
+        final View root = inflater.inflate(R.layout.alarm_clock, container, false);
+        ((AppCompatActivity) getActivity()).setSupportActionBar((Toolbar) root.findViewById(R.id.toolbar));
         final Context context = getActivity();
 
-        mRecyclerView = (RecyclerView) v.findViewById(R.id.alarms_recycler_view);
+        mRecyclerView = (RecyclerView) root.findViewById(R.id.alarms_recycler_view);
         mLayoutManager = new LinearLayoutManager(context) {
             @Override
             protected int getExtraLayoutSpace(RecyclerView.State state) {
@@ -143,9 +146,9 @@ public final class AlarmClockFragment extends DeskClockFragment implements
             }
         };
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mMainLayout = (ViewGroup) v.findViewById(R.id.main);
+        mMainLayout = (ViewGroup) root.findViewById(R.id.main);
         mAlarmUpdateHandler = new AlarmUpdateHandler(context, this, mMainLayout);
-        final TextView emptyView = (TextView) v.findViewById(R.id.alarms_empty_view);
+        final TextView emptyView = (TextView) root.findViewById(R.id.alarms_empty_view);
         final Drawable noAlarms = Utils.getVectorDrawable(context, R.drawable.ic_noalarms);
         emptyView.setCompoundDrawablesWithIntrinsicBounds(null, noAlarms, null, null);
         mEmptyViewController = new EmptyViewController(mMainLayout, mRecyclerView, emptyView);
@@ -195,7 +198,7 @@ public final class AlarmClockFragment extends DeskClockFragment implements
         itemAnimator.setChangeDuration(300L);
         itemAnimator.setMoveDuration(300L);
         mRecyclerView.setItemAnimator(itemAnimator);
-        return v;
+        return root;
     }
 
     @Override
