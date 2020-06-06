@@ -92,7 +92,8 @@
         app:layout_column="0"
         app:layout_columnSpan="5"
         app:layout_gravity="fill_horizontal"
-        app:layout_row="3" />
+        app:layout_row="3"
+        app:srcCompat="?attr/ic_ringtone" />
 
     <CheckBox
         android:id="@+id/vibrate_onoff"
@@ -126,7 +127,8 @@
         app:layout_column="0"
         app:layout_columnSpan="8"
         app:layout_gravity="fill_horizontal"
-        app:layout_row="4" />
+        app:layout_row="4"
+        app:srcCompat="?attr/ic_label" />
 
     <include
         layout="@layout/preemptive_dismiss"
@@ -142,7 +144,7 @@
         android:layout_height="@dimen/hairline_height"
         android:layout_marginRight="@dimen/hairline_side_padding"
         android:layout_marginLeft="@dimen/hairline_side_padding"
-        android:background="@color/hairline"
+        android:background="?attr/hairline"
         app:layout_column="0"
         app:layout_columnSpan="8"
         app:layout_gravity="fill_horizontal"
@@ -164,7 +166,8 @@
         android:textAppearance="@style/body"
         app:layout_column="0"
         app:layout_gravity="center_vertical"
-        app:layout_row="7" />
+        app:layout_row="7"
+        app:srcCompat="?attr/ic_delete_small" />
 
     <ImageButton
         android:id="@+id/arrow"
@@ -179,6 +182,6 @@
         app:layout_column="7"
         app:layout_gravity="center_vertical"
         app:layout_row="7"
-        app:srcCompat="@drawable/ic_caret_up" />
+        app:srcCompat="?attr/ic_caret_up" />
 
 </androidx.gridlayout.widget.GridLayout>

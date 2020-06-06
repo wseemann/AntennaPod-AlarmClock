@@ -55,7 +55,8 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:importantForAccessibility="no"
-                    android:scaleType="center" />
+                    android:scaleType="center"
+                    app:srcCompat="?attr/ic_add" />
 
                 <TextView
                     android:id="@+id/ringtone_name"
@@ -63,7 +64,6 @@
                     android:layout_height="wrap_content"
                     android:paddingEnd="16dp"
                     android:paddingStart="16dp"
-                    android:textColor="@color/white"
                     android:textSize="@dimen/alarm_text_font_size" />
 
             </LinearLayout>

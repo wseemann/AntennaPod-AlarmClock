@@ -39,7 +39,8 @@
         android:name="android.permission.READ_PHONE_STATE"
         android:maxSdkVersion="22" />
 
-    <application>
+    <application
+        android:theme="@style/Theme.AntennaPod.Splash">
 
         <!-- ============================================================== -->
         <!-- Main app components.                                           -->

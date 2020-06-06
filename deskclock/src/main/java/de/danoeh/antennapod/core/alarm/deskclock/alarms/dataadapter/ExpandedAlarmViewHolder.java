@@ -22,7 +22,6 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -106,9 +105,9 @@ public final class ExpandedAlarmViewHolder extends AlarmItemViewHolder {
         }
 
         // Cannot set in xml since we need compat functionality for API < 21
-        final Drawable labelIcon = Utils.getVectorDrawable(context, R.drawable.ic_label);
+        final Drawable labelIcon = Utils.getVectorDrawableFromAttr(context, R.attr.ic_label);
         editLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(labelIcon, null, null, null);
-        final Drawable deleteIcon = Utils.getVectorDrawable(context, R.drawable.ic_delete_small);
+        final Drawable deleteIcon = Utils.getVectorDrawableFromAttr(context, R.attr.ic_delete_small);
         delete.setCompoundDrawablesRelativeWithIntrinsicBounds(deleteIcon, null, null, null);
 
         // Collapse handler
@@ -210,8 +209,8 @@ public final class ExpandedAlarmViewHolder extends AlarmItemViewHolder {
         ringtone.setContentDescription(description + " " + title);
 
         final boolean silent = Utils.RINGTONE_SILENT.equals(alarm.alert);
-        final Drawable icon = Utils.getVectorDrawable(context,
-                silent ? R.drawable.ic_ringtone_silent : R.drawable.ic_ringtone);
+        final Drawable icon = Utils.getVectorDrawableFromAttr(context,
+                silent ? R.attr.ic_ringtone_silent : R.attr.ic_ringtone);
         ringtone.setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null);
     }
 
@@ -221,11 +220,10 @@ public final class ExpandedAlarmViewHolder extends AlarmItemViewHolder {
             final CompoundButton dayButton = dayButtons[i];
             if (alarm.daysOfWeek.isBitOn(weekdays.get(i))) {
                 dayButton.setChecked(true);
-                dayButton.setTextColor(ThemeUtils.resolveColor(context,
-                        android.R.attr.windowBackground));
+                //dayButton.setTextColor(Color.WHITE);
             } else {
                 dayButton.setChecked(false);
-                dayButton.setTextColor(Color.WHITE);
+                //dayButton.setTextColor(Color.BLACK);
             }
         }
         if (alarm.daysOfWeek.isRepeating()) {

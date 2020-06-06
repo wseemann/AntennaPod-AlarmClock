@@ -16,7 +16,7 @@
 -->
 <animated-vector
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/ic_caret_down_static">
+    android:drawable="@drawable/ic_caret_down_static_black">
     <target
         android:name="caret01"
         android:animation="@animator/caret_expand_base_animation" />

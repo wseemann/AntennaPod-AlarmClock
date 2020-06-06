@@ -1,7 +1,12 @@
 package de.danoeh.antennapod;
 
+import android.annotation.TargetApi;
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.FontAwesomeModule;
@@ -9,6 +14,12 @@ import com.joanzapata.iconify.fonts.MaterialModule;
 
 import de.danoeh.antennapod.core.ApCoreEventBusIndex;
 import de.danoeh.antennapod.core.ClientConfig;
+import de.danoeh.antennapod.core.alarm.deskclock.LogUtils;
+import de.danoeh.antennapod.core.alarm.deskclock.Utils;
+import de.danoeh.antennapod.core.alarm.deskclock.controller.Controller;
+import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
+import de.danoeh.antennapod.core.alarm.deskclock.events.LogEventTracker;
+import de.danoeh.antennapod.core.alarm.deskclock.uidata.UiDataModel;
 import de.danoeh.antennapod.spa.SPAUtil;
 import org.greenrobot.eventbus.EventBus;
 
@@ -61,6 +72,31 @@ public class PodcastApp extends Application {
                 .logNoSubscriberMessages(false)
                 .sendNoSubscriberEvent(false)
                 .installDefaultEventBus();
+
+        final SharedPreferences prefs = getDefaultSharedPreferences(getApplicationContext());
+        DataModel.getDataModel().init(getApplicationContext(), prefs);
+        UiDataModel.getUiDataModel().init(getApplicationContext(), prefs);
+        Controller.getController().setContext(getApplicationContext());
+        Controller.getController().addEventTracker(new LogEventTracker(getApplicationContext()));
     }
 
+    /**
+     * Returns the default {@link SharedPreferences} instance from the underlying storage context.
+     */
+    @TargetApi(Build.VERSION_CODES.N)
+    private static SharedPreferences getDefaultSharedPreferences(Context context) {
+        final Context storageContext;
+        if (Utils.isNOrLater()) {
+            // All N devices have split storage areas. Migrate the existing preferences into the new
+            // device encrypted storage area if that has not yet occurred.
+            final String name = PreferenceManager.getDefaultSharedPreferencesName(context);
+            storageContext = context.createDeviceProtectedStorageContext();
+            if (!storageContext.moveSharedPreferencesFrom(context, name)) {
+                LogUtils.wtf("Failed to migrate shared preferences");
+            }
+        } else {
+            storageContext = context;
+        }
+        return PreferenceManager.getDefaultSharedPreferences(storageContext);
+    }
 }

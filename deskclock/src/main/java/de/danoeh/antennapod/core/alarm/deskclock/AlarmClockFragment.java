@@ -16,20 +16,15 @@
 
 package de.danoeh.antennapod.core.alarm.deskclock;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import androidx.annotation.NonNull;
 
-import de.danoeh.antennapod.core.alarm.deskclock.controller.Controller;
-import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
-import de.danoeh.antennapod.core.alarm.deskclock.events.LogEventTracker;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,7 +34,6 @@ import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,6 +54,7 @@ import de.danoeh.antennapod.core.alarm.deskclock.uidata.UiDataModel;
 import de.danoeh.antennapod.core.alarm.deskclock.widget.EmptyViewController;
 import de.danoeh.antennapod.core.alarm.deskclock.widget.toast.SnackbarManager;
 import de.danoeh.antennapod.core.alarm.deskclock.widget.toast.ToastManager;
+import de.danoeh.antennapod.core.preferences.UserPreferences;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +101,9 @@ public final class AlarmClockFragment extends DeskClockFragment implements
     private AlarmTimeClickHandler mAlarmTimeClickHandler;
     private LinearLayoutManager mLayoutManager;
 
+    /** The single floating-action button shared across all tabs in the user interface. */
+    private ImageView mFab;
+
     /**
      * The public no-arg constructor required by all fragments.
      */
@@ -116,11 +114,6 @@ public final class AlarmClockFragment extends DeskClockFragment implements
     @Override
     public void onCreate(Bundle savedState) {
         super.onCreate(savedState);
-        final SharedPreferences prefs = getDefaultSharedPreferences(getContext().getApplicationContext());
-        DataModel.getDataModel().init(getContext().getApplicationContext(), prefs);
-        UiDataModel.getUiDataModel().init(getContext().getApplicationContext(), prefs);
-        Controller.getController().setContext(getContext().getApplicationContext());
-        Controller.getController().addEventTracker(new LogEventTracker(getContext().getApplicationContext()));
         mCursorLoader = getLoaderManager().initLoader(0, null, this);
         if (savedState != null) {
             mExpandedAlarmId = savedState.getLong(KEY_EXPANDED_ID, Alarm.INVALID_ID);
@@ -130,8 +123,26 @@ public final class AlarmClockFragment extends DeskClockFragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedState) {
         // Inflate the layout for this fragment
+        mMainLayout = container;
         final View root = inflater.inflate(R.layout.alarm_clock, container, false);
         ((AppCompatActivity) getActivity()).setSupportActionBar((Toolbar) root.findViewById(R.id.toolbar));
+        int theme = UserPreferences.getTheme();
+        int newTheme = 0;
+        if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_Light) {
+            newTheme = R.style.Theme_Base_Deskclock_Light;
+        } else if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_Dark) {
+            newTheme = R.style.Theme_Base_Deskclock_Dark;
+        } else if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_TrueBlack) {
+            newTheme = R.style.Theme_Base_Deskclock_Dark;
+        } else {
+            int nightMode = getActivity().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+                newTheme = R.style.Theme_Base_Deskclock_Dark;
+            } else {
+                newTheme = R.style.Theme_Base_Deskclock_Light;
+            }
+        }
+        getActivity().setTheme(newTheme);
         final Context context = getActivity();
 
         mRecyclerView = (RecyclerView) root.findViewById(R.id.alarms_recycler_view);
@@ -146,7 +157,7 @@ public final class AlarmClockFragment extends DeskClockFragment implements
             }
         };
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mMainLayout = (ViewGroup) root.findViewById(R.id.main);
+        //mMainLayout = (ViewGroup) root.findViewById(R.id.main);
         mAlarmUpdateHandler = new AlarmUpdateHandler(context, this, mMainLayout);
         final TextView emptyView = (TextView) root.findViewById(R.id.alarms_empty_view);
         final Drawable noAlarms = Utils.getVectorDrawable(context, R.drawable.ic_noalarms);
@@ -198,6 +209,11 @@ public final class AlarmClockFragment extends DeskClockFragment implements
         itemAnimator.setChangeDuration(300L);
         itemAnimator.setMoveDuration(300L);
         mRecyclerView.setItemAnimator(itemAnimator);
+        mFab = root.findViewById(R.id.fab);
+        onUpdateFab(mFab);
+        mFab.setOnClickListener(view -> {
+            onFabClick(mFab);
+        });
         return root;
     }
 
@@ -463,25 +479,5 @@ public final class AlarmClockFragment extends DeskClockFragment implements
         public void run() {
             mItemAdapter.notifyDataSetChanged();
         }
-    }
-
-    /**
-     * Returns the default {@link SharedPreferences} instance from the underlying storage context.
-     */
-    @TargetApi(Build.VERSION_CODES.N)
-    private static SharedPreferences getDefaultSharedPreferences(Context context) {
-        final Context storageContext;
-        if (Utils.isNOrLater()) {
-            // All N devices have split storage areas. Migrate the existing preferences into the new
-            // device encrypted storage area if that has not yet occurred.
-            final String name = PreferenceManager.getDefaultSharedPreferencesName(context);
-            storageContext = context.createDeviceProtectedStorageContext();
-            if (!storageContext.moveSharedPreferencesFrom(context, name)) {
-                LogUtils.wtf("Failed to migrate shared preferences");
-            }
-        } else {
-            storageContext = context;
-        }
-        return PreferenceManager.getDefaultSharedPreferences(storageContext);
     }
 }

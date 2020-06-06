@@ -28,6 +28,8 @@ import de.danoeh.antennapod.core.alarm.deskclock.LogUtils;
 import de.danoeh.antennapod.core.alarm.deskclock.R;
 import de.danoeh.antennapod.core.alarm.deskclock.data.CustomRingtone;
 import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
+import de.danoeh.antennapod.core.feed.FeedItem;
+import de.danoeh.antennapod.core.storage.DBReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +93,16 @@ class RingtoneLoader extends AsyncTaskLoader<List<ItemAdapter.ItemHolder<Uri>>> 
 
         // Add an item holder for the "Add new" music ringtone.
         itemHolders.add(new AddCustomRingtoneHolder());
+
+        // Add an item holder for recently added podcasts
+        itemHolders.add(new HeaderHolder(R.string.podcasts));
+
+        List<FeedItem> items = DBReader.getRecentlyPublishedEpisodes(0, 20);
+        // Add an item holder for each podcasts.
+        for (int i = 0; i < items.size(); i++) {
+            final FeedItem feedItem = items.get(i);
+            itemHolders.add(new PodcastHolder(Uri.parse(feedItem.getMedia().getStreamUrl()), feedItem.getTitle(), feedItem));
+        }
 
         // Add an item holder for the Ringtones heading.
         itemHolders.add(new HeaderHolder(R.string.device_sounds));

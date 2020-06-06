@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.RingtoneManager;
@@ -34,6 +35,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -54,6 +56,7 @@ import de.danoeh.antennapod.core.alarm.deskclock.actionbarmenu.OptionsMenuManage
 import de.danoeh.antennapod.core.alarm.deskclock.alarms.AlarmUpdateHandler;
 import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
 import de.danoeh.antennapod.core.alarm.deskclock.provider.Alarm;
+import de.danoeh.antennapod.core.preferences.UserPreferences;
 
 import java.util.List;
 
@@ -64,6 +67,7 @@ import static de.danoeh.antennapod.core.alarm.deskclock.ItemAdapter.ItemViewHold
 import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.AddCustomRingtoneViewHolder.VIEW_TYPE_ADD_NEW;
 import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.HeaderViewHolder.VIEW_TYPE_ITEM_HEADER;
 import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.RingtoneViewHolder.VIEW_TYPE_CUSTOM_SOUND;
+import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.RingtoneViewHolder.VIEW_TYPE_PODCAST;
 import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.RingtoneViewHolder.VIEW_TYPE_SYSTEM_SOUND;
 
 /**
@@ -75,7 +79,7 @@ import static de.danoeh.antennapod.core.alarm.deskclock.ringtone.RingtoneViewHol
  *     <li>user-selected audio files available as ringtones</li>
  * </ul>
  */
-public class RingtonePickerActivity extends BaseActivity
+public class RingtonePickerActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<List<ItemAdapter.ItemHolder<Uri>>> {
 
     /** Key to an extra that defines resource id to the title of this activity. */
@@ -153,6 +157,23 @@ public class RingtonePickerActivity extends BaseActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        int theme = UserPreferences.getTheme();
+        int newTheme = 0;
+        if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_Light) {
+            newTheme = R.style.Theme_Base_Deskclock_Light;
+        } else if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_Dark) {
+            newTheme = R.style.Theme_Base_Deskclock_Dark;
+        } else if (theme == de.danoeh.antennapod.core.R.style.Theme_AntennaPod_TrueBlack) {
+            newTheme = R.style.Theme_Base_Deskclock_Dark;
+        } else {
+            int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+                newTheme = R.style.Theme_Base_Deskclock_Dark;
+            } else {
+                newTheme = R.style.Theme_Base_Deskclock_Light;
+            }
+        }
+        setTheme(newTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ringtone_picker);
         setVolumeControlStream(AudioManager.STREAM_ALARM);
@@ -188,7 +209,8 @@ public class RingtonePickerActivity extends BaseActivity
         mRingtoneAdapter.withViewTypes(headerFactory, null, VIEW_TYPE_ITEM_HEADER)
                 .withViewTypes(addNewFactory, listener, VIEW_TYPE_ADD_NEW)
                 .withViewTypes(ringtoneFactory, listener, VIEW_TYPE_SYSTEM_SOUND)
-                .withViewTypes(ringtoneFactory, listener, VIEW_TYPE_CUSTOM_SOUND);
+                .withViewTypes(ringtoneFactory, listener, VIEW_TYPE_CUSTOM_SOUND)
+                .withViewTypes(ringtoneFactory, listener, VIEW_TYPE_PODCAST);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.ringtone_content);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
@@ -328,6 +350,7 @@ public class RingtonePickerActivity extends BaseActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) {
             return;
         }

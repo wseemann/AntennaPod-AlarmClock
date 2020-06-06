@@ -3,6 +3,7 @@
     <attr name="action_about" format="reference"/>
     <attr name="action_search" format="reference"/>
     <attr name="action_stream" format="reference"/>
+    <attr name="alarm_clock" format="reference"/>
     <attr name="av_download" format="reference"/>
     <attr name="av_fast_forward" format="reference"/>
     <attr name="av_pause" format="reference"/>

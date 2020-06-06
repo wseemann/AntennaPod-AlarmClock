@@ -17,9 +17,18 @@ import android.telephony.TelephonyManager;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
+
+import de.danoeh.antennapod.core.feed.Feed;
+import de.danoeh.antennapod.core.feed.FeedItem;
+import de.danoeh.antennapod.core.feed.FeedMedia;
+import de.danoeh.antennapod.core.storage.DBReader;
+import de.danoeh.antennapod.core.util.IntentUtils;
+import de.danoeh.antennapod.core.util.playback.PlaybackServiceStarter;
 
 import static android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
 import static android.media.AudioManager.STREAM_ALARM;
+import static de.danoeh.antennapod.core.service.playback.PlaybackService.ACTION_PAUSE_PLAY_CURRENT_EPISODE;
 
 /**
  * <p>This class controls playback of ringtones. Uses {@link Ringtone} or {@link MediaPlayer} in a
@@ -47,7 +56,7 @@ import static android.media.AudioManager.STREAM_ALARM;
  * {@link #getFallbackRingtoneUri in-app fallback} is used because playing <strong>some</strong>
  * sort of noise is always preferable to remaining silent.</p>
  */
-public final class AsyncRingtonePlayer {
+public class AsyncRingtonePlayer {
 
     private static final LogUtils.Logger LOGGER = new LogUtils.Logger("AsyncRingtonePlayer");
 
@@ -220,15 +229,7 @@ public final class AsyncRingtonePlayer {
         checkAsyncRingtonePlayerThread();
 
         if (mPlaybackDelegate == null) {
-            if (Utils.isMOrLater()) {
-                // Use the newer Ringtone-based playback delegate because it does not require
-                // any permissions to read from the SD card. (M+)
-                mPlaybackDelegate = new RingtonePlaybackDelegate();
-            } else {
-                // Fall back to the older MediaPlayer-based playback delegate because it is the only
-                // way to force the looping of the ringtone before M. (pre M)
-                mPlaybackDelegate = new MediaPlayerPlaybackDelegate();
-            }
+            mPlaybackDelegate = new UnifiedPlaybackDelegate();
         }
 
         return mPlaybackDelegate;
@@ -635,5 +636,121 @@ public final class AsyncRingtonePlayer {
             // Schedule the next volume bump in the crescendo.
             return true;
         }
+    }
+
+    private class AntennaPodPlaybackDelegate implements PlaybackDelegate {
+
+        private FeedItem playableFeedItem = null;
+
+        @Override
+        public boolean play(Context context, Uri ringtoneUri, long crescendoDuration) {
+            playableFeedItem = findFeedItemForUri(ringtoneUri);
+
+            if (playableFeedItem == null) {
+                return false;
+            } else {
+                //if (!PlaybackService.isRunning) {
+                    PlaybackServiceStarter playbackServiceStarter = new PlaybackServiceStarter(mContext.getApplicationContext(), playableFeedItem.getMedia());
+                    playbackServiceStarter.prepareImmediately(true);
+                    playbackServiceStarter.startWhenPrepared(true);
+                    playbackServiceStarter.callEvenIfRunning(true);
+                    //playbackServiceStarter.shouldStream(true);
+                    playbackServiceStarter.streamIfLastWasStream();
+                    playbackServiceStarter.start();
+                //}
+            }
+
+            return playableFeedItem == null;
+        }
+
+        @Override
+        public void stop(Context context) {
+            FeedMedia media = playableFeedItem.getMedia();
+            if (media == null) {
+                return;
+            }
+
+            if (media.isCurrentlyPlaying()) {
+                IntentUtils.sendLocalBroadcast(context, ACTION_PAUSE_PLAY_CURRENT_EPISODE);
+            }
+
+            playableFeedItem = null;
+        }
+
+        @Override
+        public boolean adjustVolume(Context context) {
+            return false;
+        }
+    }
+
+    private FeedItem findFeedItemForUri(Uri ringtoneUri) {
+        List<Feed> feeds = DBReader.getFeedList();
+
+        for (Feed feed : feeds) {
+            for (FeedItem feedItem : DBReader.getFeedItemList(feed)) {
+                if (feedItem.getMedia().getDownload_url().equals(ringtoneUri.toString())) {
+                    return feedItem;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private class UnifiedPlaybackDelegate implements PlaybackDelegate {
+
+        private PlaybackDelegate mPlaybackDelegate;
+        private PlaybackDelegate mAlarmPlaybackDelegate;
+        private PlaybackDelegate mAntennaPodPlaybackDelegate;
+
+        public UnifiedPlaybackDelegate() {
+            if (Utils.isMOrLater()) {
+                // Use the newer Ringtone-based playback delegate because it does not require
+                // any permissions to read from the SD card. (M+)
+                mAlarmPlaybackDelegate = new RingtonePlaybackDelegate();
+            } else {
+                // Fall back to the older MediaPlayer-based playback delegate because it is the only
+                // way to force the looping of the ringtone before M. (pre M)
+                mAlarmPlaybackDelegate = new MediaPlayerPlaybackDelegate();
+            }
+
+            mAntennaPodPlaybackDelegate = new AntennaPodPlaybackDelegate();
+
+        }
+
+        @Override
+        public boolean play(Context context, Uri ringtoneUri, long crescendoDuration) {
+            if (isPreview()) {
+                mPlaybackDelegate = mAlarmPlaybackDelegate;
+            } else {
+                if (findFeedItemForUri(ringtoneUri) == null) {
+                    mPlaybackDelegate = mAlarmPlaybackDelegate;
+                } else {
+                    mPlaybackDelegate = mAntennaPodPlaybackDelegate;
+                }
+            }
+
+            return mPlaybackDelegate.play(context, ringtoneUri, crescendoDuration);
+        }
+
+        @Override
+        public void stop(Context context) {
+            if (mPlaybackDelegate != null) {
+                mPlaybackDelegate.stop(context);
+            }
+        }
+
+        @Override
+        public boolean adjustVolume(Context context) {
+            if (mPlaybackDelegate != null) {
+                return mPlaybackDelegate.adjustVolume(context);
+            }
+
+            return false;
+        }
+    }
+
+    public boolean isPreview() {
+        return false;
     }
 }

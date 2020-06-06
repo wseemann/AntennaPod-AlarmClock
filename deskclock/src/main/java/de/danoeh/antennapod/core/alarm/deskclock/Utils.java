@@ -38,6 +38,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import androidx.annotation.AnyRes;
+import androidx.annotation.AttrRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringRes;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
@@ -54,6 +55,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.util.ArraySet;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextClock;
 import android.widget.TextView;
@@ -495,6 +497,24 @@ public class Utils {
      */
     public static VectorDrawableCompat getVectorDrawable(Context context, @DrawableRes int resId) {
         return VectorDrawableCompat.create(context.getResources(), resId, context.getTheme());
+    }
+
+    /**
+     * @return a drawable resid from the given {@code resId}
+     */
+    public static int getDrawableResIdFromAttr(Context context, @AttrRes int resId) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(resId, typedValue, true);
+        return typedValue.resourceId;
+    }
+
+    /**
+     * @return a vector-drawable inflated from the given {@code resId}
+     */
+    public static VectorDrawableCompat getVectorDrawableFromAttr(Context context, @AttrRes int resId) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(resId, typedValue, true);
+        return VectorDrawableCompat.create(context.getResources(), typedValue.resourceId, context.getTheme());
     }
 
     /**

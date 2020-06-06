@@ -113,7 +113,7 @@
         app:layout_gravity="bottom"
         app:layout_row="1"
         app:layout_rowSpan="2"
-        app:srcCompat="@drawable/ic_caret_down" />
+        app:srcCompat="?attr/ic_caret_down" />
 
     <View
         android:id="@+id/hairline"
@@ -121,7 +121,7 @@
         android:layout_height="@dimen/hairline_height"
         android:layout_marginEnd="@dimen/icon_margin"
         android:layout_marginStart="@dimen/icon_margin"
-        android:background="@color/hairline"
+        android:background="?attr/hairline"
         app:layout_column="0"
         app:layout_columnSpan="5"
         app:layout_gravity="fill_horizontal"

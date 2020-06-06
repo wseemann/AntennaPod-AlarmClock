@@ -39,7 +39,7 @@ public final class RingtonePreviewKlaxon {
 
     private static synchronized AsyncRingtonePlayer getAsyncRingtonePlayer(Context context) {
         if (sAsyncRingtonePlayer == null) {
-            sAsyncRingtonePlayer = new AsyncRingtonePlayer(context.getApplicationContext());
+            sAsyncRingtonePlayer = new AsyncPreviewRingtonePlayer(context.getApplicationContext());
         }
 
         return sAsyncRingtonePlayer;

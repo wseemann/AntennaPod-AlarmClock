@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/hairline_height"
             android:layout_gravity="bottom"
-            android:background="@color/hairline"
+            android:background="?attr/hairline"
             android:importantForAccessibility="no" />
 
     </com.google.android.material.appbar.AppBarLayout>

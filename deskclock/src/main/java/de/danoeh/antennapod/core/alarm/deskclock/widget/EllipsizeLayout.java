@@ -42,6 +42,10 @@ public class EllipsizeLayout extends LinearLayout {
         super(context, attrs);
     }
 
+    public EllipsizeLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
     /**
      * This override only acts when the LinearLayout is in the Horizontal orientation and is in it's
      * final measurement pass(MeasureSpec.EXACTLY). In this case only, this class

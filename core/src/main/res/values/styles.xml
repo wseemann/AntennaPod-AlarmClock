@@ -28,6 +28,7 @@
         <item name="checkbox_multiple">@drawable/ic_check_multiple_black</item>
         <item name="action_search">@drawable/ic_search_black</item>
         <item name="action_stream">@drawable/ic_stream_black</item>
+        <item name="alarm_clock">@drawable/ic_alarm_clock_black</item>
         <item name="av_download">@drawable/ic_download_black</item>
         <item name="av_pause">@drawable/ic_av_pause_black_48dp</item>
         <item name="av_play">@drawable/ic_av_play_black_48dp</item>
@@ -102,6 +103,7 @@
         <item name="checkbox_multiple">@drawable/ic_check_multiple_white</item>
         <item name="action_search">@drawable/ic_search_white</item>
         <item name="action_stream">@drawable/ic_stream_white</item>
+        <item name="alarm_clock">@drawable/ic_alarm_clock_white</item>
         <item name="av_download">@drawable/ic_download_white</item>
         <item name="av_rewind">@drawable/ic_av_fast_rewind_white_48dp</item>
         <item name="av_fast_forward">@drawable/ic_av_fast_forward_white_48dp</item>

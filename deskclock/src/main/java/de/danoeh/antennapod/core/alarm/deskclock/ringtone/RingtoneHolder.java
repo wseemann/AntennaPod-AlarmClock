@@ -24,7 +24,7 @@ import de.danoeh.antennapod.core.alarm.deskclock.data.DataModel;
 
 import static androidx.recyclerview.widget.RecyclerView.NO_ID;
 
-abstract class RingtoneHolder extends ItemAdapter.ItemHolder<Uri> {
+public abstract class RingtoneHolder extends ItemAdapter.ItemHolder<Uri> {
 
     private final String mName;
     private final boolean mHasPermissions;
@@ -47,7 +47,7 @@ abstract class RingtoneHolder extends ItemAdapter.ItemHolder<Uri> {
 
     boolean isSilent() { return Utils.RINGTONE_SILENT.equals(getUri()); }
 
-    boolean isSelected() { return mSelected; }
+    public boolean isSelected() { return mSelected; }
     void setSelected(boolean selected) { mSelected = selected; }
 
     boolean isPlaying() { return mPlaying; }

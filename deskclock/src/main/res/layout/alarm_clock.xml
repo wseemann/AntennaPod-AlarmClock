@@ -40,8 +40,7 @@
         android:paddingBottom="@dimen/fab_height"
         android:scrollbarStyle="outsideOverlay"
         android:scrollbars="vertical"
-        android:splitMotionEvents="false"
-        android:background="@color/black"/>
+        android:splitMotionEvents="false"/>
 
     <TextView
         android:id="@+id/alarms_empty_view"
@@ -55,5 +54,16 @@
         android:text="@string/no_alarms"
         android:textColor="@color/no_alarms"
         android:visibility="gone" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/fab_margin"
+        app:borderWidth="0dp"
+        app:elevation="@dimen/fab_elevation" />
 
 </RelativeLayout>

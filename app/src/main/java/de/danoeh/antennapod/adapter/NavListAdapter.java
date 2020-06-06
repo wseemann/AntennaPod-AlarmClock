@@ -132,7 +132,7 @@ public class NavListAdapter extends BaseAdapter
                 icon = R.attr.content_new;
                 break;
             case AlarmClockFragment.TAG:
-                icon = R.attr.content_new;
+                icon = R.attr.alarm_clock;
                 break;
             default:
                 return null;

@@ -31,17 +31,19 @@ import de.danoeh.antennapod.core.alarm.deskclock.ItemAdapter;
 import de.danoeh.antennapod.core.alarm.deskclock.R;
 import de.danoeh.antennapod.core.alarm.deskclock.ThemeUtils;
 import de.danoeh.antennapod.core.alarm.deskclock.Utils;
+import de.danoeh.antennapod.core.alarm.deskclock.view.viewholder.EpisodeItemViewHolder;
 
 import static android.view.View.GONE;
 import static android.view.View.OnClickListener;
 import static android.view.View.OnCreateContextMenuListener;
 import static android.view.View.VISIBLE;
 
-final class RingtoneViewHolder extends ItemAdapter.ItemViewHolder<RingtoneHolder>
+public class RingtoneViewHolder extends ItemAdapter.ItemViewHolder<RingtoneHolder>
         implements OnClickListener, OnCreateContextMenuListener {
 
     static final int VIEW_TYPE_SYSTEM_SOUND = R.layout.ringtone_item_sound;
     static final int VIEW_TYPE_CUSTOM_SOUND = -R.layout.ringtone_item_sound;
+    static final int VIEW_TYPE_PODCAST = R.layout.feeditemlist_itemm;
     static final int CLICK_NORMAL = 0;
     static final int CLICK_LONG_PRESS = -1;
     static final int CLICK_NO_PERMISSIONS = -2;
@@ -50,7 +52,7 @@ final class RingtoneViewHolder extends ItemAdapter.ItemViewHolder<RingtoneHolder
     private final TextView mNameView;
     private final ImageView mImageView;
 
-    private RingtoneViewHolder(View itemView) {
+    public RingtoneViewHolder(View itemView) {
         super(itemView);
         itemView.setOnClickListener(this);
 
@@ -78,11 +80,11 @@ final class RingtoneViewHolder extends ItemAdapter.ItemViewHolder<RingtoneHolder
                 mImageView.setImageResource(R.drawable.placeholder_album_artwork);
             }
         } else if (itemHolder.item == Utils.RINGTONE_SILENT) {
-            mImageView.setImageResource(R.drawable.ic_ringtone_silent);
+            mImageView.setImageResource(Utils.getDrawableResIdFromAttr(itemView.getContext(), R.attr.ic_ringtone_silent));
         } else if (itemHolder.isPlaying()) {
-            mImageView.setImageResource(R.drawable.ic_ringtone_active);
+            mImageView.setImageResource(Utils.getDrawableResIdFromAttr(itemView.getContext(), R.attr.ic_ringtone_active));
         } else {
-            mImageView.setImageResource(R.drawable.ic_ringtone);
+            mImageView.setImageResource(Utils.getDrawableResIdFromAttr(itemView.getContext(), R.attr.ic_ringtone));
         }
         AnimatorUtils.startDrawableAnimation(mImageView);
 
@@ -122,8 +124,12 @@ final class RingtoneViewHolder extends ItemAdapter.ItemViewHolder<RingtoneHolder
 
         @Override
         public ItemAdapter.ItemViewHolder<?> createViewHolder(ViewGroup parent, int viewType) {
-            final View itemView = mInflater.inflate(R.layout.ringtone_item_sound, parent, false);
-            return new RingtoneViewHolder(itemView);
+            if (viewType == VIEW_TYPE_PODCAST) {
+                return new EpisodeItemViewHolder(parent.getContext(), parent);
+            } else {
+                final View itemView = mInflater.inflate(R.layout.ringtone_item_sound, parent, false);
+                return new RingtoneViewHolder(itemView);
+            }
         }
     }
 }

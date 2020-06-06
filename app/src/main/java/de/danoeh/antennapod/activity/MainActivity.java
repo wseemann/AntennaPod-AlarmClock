@@ -29,6 +29,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.core.alarm.deskclock.AlarmClockFragment;
+import de.danoeh.antennapod.core.alarm.deskclock.LabelDialogFragment;
+import de.danoeh.antennapod.core.alarm.deskclock.provider.Alarm;
 import de.danoeh.antennapod.core.event.MessageEvent;
 import de.danoeh.antennapod.core.preferences.UserPreferences;
 import de.danoeh.antennapod.core.util.StorageUtils;
@@ -55,7 +57,8 @@ import org.greenrobot.eventbus.ThreadMode;
 /**
  * The activity that is shown when the user launches the app.
  */
-public class MainActivity extends CastEnabledActivity {
+public class MainActivity extends CastEnabledActivity
+        implements LabelDialogFragment.AlarmLabelDialogHandler {
 
     private static final String TAG = "MainActivity";
     public static final String MAIN_FRAGMENT_TAG = "main";
@@ -467,5 +470,13 @@ public class MainActivity extends CastEnabledActivity {
 
     public Snackbar showSnackbarAbovePlayer(int text, int duration) {
         return showSnackbarAbovePlayer(getResources().getText(text), duration);
+    }
+
+    @Override
+    public void onDialogLabelSet(Alarm alarm, String label, String tag) {
+        final Fragment frag = getSupportFragmentManager().findFragmentByTag(tag);
+        if (frag instanceof AlarmClockFragment) {
+            ((AlarmClockFragment) frag).setLabel(alarm, label);
+        }
     }
 }
